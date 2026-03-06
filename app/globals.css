@@ -1,26 +1,151 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-inter);
+  --font-mono: var(--font-fira);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  --radius: 0.5rem;
+  --background: #09090b;
+  --foreground: #fafafa;
+  --card: #111113;
+  --card-foreground: #fafafa;
+  --popover: #111113;
+  --popover-foreground: #fafafa;
+  --primary: #3b82f6;
+  --primary-foreground: #fff;
+  --secondary: #18181b;
+  --secondary-foreground: #fafafa;
+  --muted: #18181b;
+  --muted-foreground: #71717a;
+  --accent: #18181b;
+  --accent-foreground: #fafafa;
+  --destructive: #ef4444;
+  --border: #27272a;
+  --input: #27272a;
+  --ring: #3b82f6;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  * {
+    box-sizing: border-box;
+    border-color: #27272a;
+  }
+  body {
+    background-color: #09090b;
+    color: #fafafa;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    -webkit-font-smoothing: antialiased;
+  }
+  ::selection {
+    background: rgba(59, 130, 246, 0.3);
+    color: #fff;
   }
 }
 
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+@layer utilities {
+  /* Subtle dot grid — barely visible */
+  .dot-grid {
+    background-image: radial-gradient(circle, #27272a 1px, transparent 1px);
+    background-size: 32px 32px;
+  }
+  /* Single horizontal gradient line accent */
+  .accent-line {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, #3b82f6, transparent);
+  }
+  /* Clean card hover */
+  .card-hover {
+    transition: border-color 0.2s ease, transform 0.2s ease;
+  }
+  .card-hover:hover {
+    border-color: #3f3f46;
+    transform: translateY(-2px);
+  }
+  /* Section max width + padding */
+  .section-container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 80px 24px;
+  }
+  @media (min-width: 768px) {
+    .section-container {
+      padding: 100px 48px;
+    }
+  }
+  /* Text styles */
+  .text-accent {
+    color: #3b82f6;
+  }
+  .label-text {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: #3b82f6;
+  }
+  /* Tag pill */
+  .tag {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 10px;
+    font-size: 0.72rem;
+    border-radius: 4px;
+    border: 1px solid #27272a;
+    color: #a1a1aa;
+    background: transparent;
+    font-family: var(--font-mono);
+    transition: border-color 0.2s, color 0.2s;
+  }
+  /* Timeline */
+  .timeline-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #3b82f6;
+    border: 2px solid #09090b;
+    outline: 1px solid #3b82f6;
+    flex-shrink: 0;
+    margin-top: 6px;
+  }
+  .timeline-dot-muted {
+    background: #3f3f46;
+    outline-color: #3f3f46;
+  }
 }
+
+/* ── Slim scrollbar ──────────────────────────────── */
+::-webkit-scrollbar        { width: 4px; height: 4px; }
+::-webkit-scrollbar-track  { background: transparent; }
+::-webkit-scrollbar-thumb  { background: #27272a; border-radius: 999px; }
+::-webkit-scrollbar-thumb:hover { background: #3f3f46; }
+* { scrollbar-width: thin; scrollbar-color: #27272a transparent; }
+
