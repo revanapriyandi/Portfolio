@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, Fira_Code } from "next/font/google";
 import "./globals.css";
-import { Navbar } from "@/components/navbar";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -42,8 +41,7 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className="dark scroll-smooth">
-      <body className={`${inter.variable} ${firaCode.variable} font-sans antialiased`}>
-        <Navbar />
+      <body className={`${inter.variable} ${firaCode.variable} antialiased`}>
         {children}
       </body>
     </html>
