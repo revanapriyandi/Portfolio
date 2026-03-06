@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Inter, Fira_Code } from "next/font/google";
 import "./globals.css";
+import { getSeoContext } from "@/lib/seo";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -15,26 +16,31 @@ const firaCode = Fira_Code({
   weight: ["400", "500"],
 });
 
-export const metadata: Metadata = {
-  title: "M. Revan Apriyandi — Software Engineer",
-  description:
-    "Portfolio of M. Revan Apriyandi, a Software Engineer with 3+ years of experience building modern web applications using Laravel, React, Next.js, and more.",
-  keywords: [
-    "Software Engineer",
-    "Full Stack Developer",
-    "Laravel",
-    "React",
-    "Next.js",
-    "Portfolio",
-    "Jakarta",
-  ],
-  authors: [{ name: "M. Revan Apriyandi", url: "https://revanapriyandi.vercel.app" }],
-  openGraph: {
-    title: "M. Revan Apriyandi — Software Engineer",
-    description: "Software Engineer based in Jakarta, Indonesia.",
-    type: "website",
-  },
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const { siteTitle, siteDescription, siteUrl, defaultOgImage } = await getSeoContext();
+
+  return {
+    title: {
+      default: siteTitle,
+      template: `%s | ${siteTitle}`,
+    },
+    description: siteDescription,
+    metadataBase: new URL(siteUrl),
+    openGraph: {
+      title: siteTitle,
+      description: siteDescription,
+      url: siteUrl,
+      type: "website",
+      images: defaultOgImage ? [{ url: defaultOgImage }] : undefined,
+    },
+    twitter: {
+      card: defaultOgImage ? "summary_large_image" : "summary",
+      title: siteTitle,
+      description: siteDescription,
+      images: defaultOgImage ? [defaultOgImage] : undefined,
+    },
+  };
+}
 
 export default function RootLayout({
   children,
