@@ -3,7 +3,7 @@
 import "@measured/puck/puck.css";
 import { Puck } from "@measured/puck";
 import { config, type UserConfig, type CustomRootProps } from "@/puck.config";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense, startTransition } from "react";
 import { Loader2, ChevronDown, Plus, FileText } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
 import type { Data } from "@measured/puck";
@@ -14,11 +14,12 @@ interface PageMeta {
   status: string;
 }
 
-export default function BuilderPage() {
+function BuilderInner() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const [currentSlug, setCurrentSlug] = useState(searchParams.get("slug") ?? "home");
   const [initialData, setInitialData] = useState<Data<UserConfig, CustomRootProps> | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
   const [pages, setPages] = useState<PageMeta[]>([]);
   const [toast, setToast] = useState("");
   const [toastType, setToastType] = useState<"success" | "error">("success");
@@ -35,14 +36,21 @@ export default function BuilderPage() {
   }, []);
 
   // Load page data when slug changes
-  // eslint-disable-next-line react-compiler/react-compiler
   useEffect(() => {
-    setInitialData(null);
-    fetch(`/api/builder?slug=${currentSlug}`)
+    const controller = new AbortController();
+    startTransition(() => setIsLoading(true));
+    fetch(`/api/builder?slug=${currentSlug}`, { signal: controller.signal })
       .then(r => r.json())
-      .then(d => setInitialData(d))
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      .catch(_e => setInitialData({ content: [], root: { props: { bgColor: "#000000", accentColor: "#6366f1", customCss: "" } } }));
+      .then(d => startTransition(() => { setInitialData(d); setIsLoading(false); }))
+      .catch(() => {
+        if (!controller.signal.aborted) {
+          startTransition(() => {
+            setInitialData({ content: [], root: { props: { bgColor: "#000000", accentColor: "#6366f1", customCss: "" } } });
+            setIsLoading(false);
+          });
+        }
+      });
+    return () => controller.abort();
   }, [currentSlug]);
 
   const switchPage = (slug: string) => {
@@ -109,12 +117,16 @@ export default function BuilderPage() {
         </div>
       </div>
 
-      {!initialData ? (
+      {(isLoading && !initialData) ? (
         <div className="flex h-full items-center justify-center">
           <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
         </div>
-      ) : (
+      ) : initialData ? (
         <Puck config={config} data={initialData} onPublish={save} />
+      ) : (
+        <div className="flex h-full items-center justify-center">
+          <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
+        </div>
       )}
 
       {/* Toast */}
@@ -124,5 +136,17 @@ export default function BuilderPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function BuilderPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex h-[calc(100vh-56px)] items-center justify-center">
+        <Loader2 className="w-6 h-6 animate-spin text-indigo-500" />
+      </div>
+    }>
+      <BuilderInner />
+    </Suspense>
   );
 }
