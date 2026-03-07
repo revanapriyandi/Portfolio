@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Inter, Fira_Code } from "next/font/google";
 import "./globals.css";
 import { createClient } from "@/lib/supabase/server";
+import { getSeoContext } from "@/lib/seo";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -68,6 +69,29 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   }
 
   const radiusMap: Record<string, string> = { none: "0px", sm: "0.25rem", md: "0.5rem", lg: "1rem", full: "9999px" };
+  const { siteTitle, siteDescription, siteUrl, defaultOgImage } = await getSeoContext();
+
+  return {
+    title: {
+      default: siteTitle,
+      template: `%s | ${siteTitle}`,
+    },
+    description: siteDescription,
+    metadataBase: new URL(siteUrl),
+    openGraph: {
+      title: siteTitle,
+      description: siteDescription,
+      url: siteUrl,
+      type: "website",
+      images: defaultOgImage ? [{ url: defaultOgImage }] : undefined,
+    },
+    twitter: {
+      card: defaultOgImage ? "summary_large_image" : "summary",
+      title: siteTitle,
+      description: siteDescription,
+      images: defaultOgImage ? [defaultOgImage] : undefined,
+    },
+  };
 
   return (
     <html lang="en" className="dark scroll-smooth">
