@@ -6,15 +6,12 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import {
   LayoutDashboard, User, FolderKanban, Wrench, Briefcase,
-  GraduationCap, LogOut, ExternalLink, ChevronRight, Github, Palette,
-  Globe, Settings, Layers, MessageSquare, Star, Menu, X, Mail
+  GraduationCap, LogOut, ExternalLink, ChevronRight, Github,
+  Settings, MessageSquare, Star, Menu, X, Mail
 } from "lucide-react";
 
 const mainNav = [
   { href: "/dashboard/cms", label: "Overview", icon: LayoutDashboard, exact: true },
-  { href: "/dashboard/cms/pages", label: "Halaman", icon: Globe },
-  { href: "/dashboard/cms/builder", label: "Page Builder", icon: Palette },
-  { href: "/dashboard/cms/templates", label: "Templates", icon: Layers },
   { href: "/dashboard/cms/inbox", label: "Inbox", icon: Mail },
 ];
 

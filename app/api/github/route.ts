@@ -29,6 +29,55 @@ export async function GET() {
       fetch(reposUrl, { headers, next: { revalidate: 3600 } }),
     ]);
 
+    let contributions = null;
+    let totalContributions = 0;
+
+    // Fetch contributions via GraphQL if TOKEN is present (required for GraphQL)
+    if (TOKEN && USERNAME) {
+      try {
+        const gqlQuery = `
+          query {
+            user(login: "${USERNAME}") {
+              contributionsCollection {
+                contributionCalendar {
+                  totalContributions
+                  weeks {
+                    contributionDays {
+                      contributionCount
+                      date
+                    }
+                  }
+                }
+              }
+            }
+          }
+        `;
+        const gqlRes = await fetch("https://api.github.com/graphql", {
+          method: "POST",
+          headers,
+          body: JSON.stringify({ query: gqlQuery }),
+          next: { revalidate: 3600 },
+        });
+        if (gqlRes.ok) {
+          const gqlData = await gqlRes.json();
+          const calendar = gqlData?.data?.user?.contributionsCollection?.contributionCalendar;
+          if (calendar) {
+            totalContributions = calendar.totalContributions;
+            // Flatten weeks into a single array of days
+            const days: { date: string; count: number }[] = [];
+            calendar.weeks.forEach((week: { contributionDays: { date: string; contributionCount: number }[] }) => {
+              week.contributionDays.forEach((day: { date: string; contributionCount: number }) => {
+                days.push({ date: day.date, count: day.contributionCount });
+              });
+            });
+            contributions = days;
+          }
+        }
+      } catch (err) {
+        console.error("GraphQL Contributions Error:", err);
+      }
+    }
+
     if (!userRes.ok) {
       return NextResponse.json({ error: "GitHub API error" }, { status: userRes.status });
     }
@@ -42,7 +91,11 @@ export async function GET() {
       language: string | null;
       html_url: string;
       updated_at: string;
+      private: boolean;
     }[] = reposRes.ok ? await reposRes.json() : [];
+
+    const calculatedPrivate = repos.filter((r) => r.private).length;
+    const finalPrivateCount = user.total_private_repos ?? calculatedPrivate;
 
     const totalStars = repos.reduce((sum, r) => sum + r.stargazers_count, 0);
     const totalForks = repos.reduce((sum, r) => sum + r.forks_count, 0);
@@ -78,18 +131,20 @@ export async function GET() {
         followers: user.followers,
         following: user.following,
         publicRepos: user.public_repos,
-        privateRepos: user.total_private_repos || 0,
+        privateRepos: finalPrivateCount,
         profileUrl: user.html_url,
       },
       stats: { 
         totalStars, 
         totalForks, 
         totalRepos: repos.length,
-        publicRepos: user.public_repos || 0,
-        privateRepos: user.total_private_repos || 0
+        publicRepos: repos.filter(r => !r.private).length || user.public_repos || 0,
+        privateRepos: finalPrivateCount,
+        totalContributions
       },
       languages,
       topRepos,
+      contributions,
     });
   } catch (error) {
     return NextResponse.json({ error: String(error) }, { status: 500 });

@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/client";
 import Link from "next/link";
 import {
   FolderKanban, Briefcase, Code2, 
-  Settings, LayoutTemplate, PlusCircle, ArrowUpRight,
+  Settings, PlusCircle, ArrowUpRight,
   Github, Activity, Users, Star, Eye, Lock
 } from "lucide-react";
 
@@ -16,12 +16,12 @@ interface Stats {
   skills: number;
   services: number;
   testimonials: number;
-  pages: number;
 }
 
 interface GithubData {
   user?: { name: string; followers: number; publicRepos: number; privateRepos: number; profileUrl: string };
-  stats?: { totalStars: number; totalForks: number; totalRepos: number; publicRepos: number; privateRepos: number };
+  stats?: { totalStars: number; totalForks: number; totalRepos: number; publicRepos: number; privateRepos: number; totalContributions?: number };
+  contributions?: { date: string; count: number }[];
 }
 
 interface AnalyticsData {
@@ -33,7 +33,7 @@ export default function DashboardOverview() {
   const supabase = createClient();
   const [stats, setStats] = useState<Stats>({
     projects: 0, experience: 0, education: 0, 
-    skills: 0, services: 0, testimonials: 0, pages: 0
+    skills: 0, services: 0, testimonials: 0
   });
   const [github, setGithub] = useState<GithubData>({});
   const [analytics, setAnalytics] = useState<AnalyticsData>({ configured: false });
@@ -43,7 +43,7 @@ export default function DashboardOverview() {
     async function loadStats() {
       const [
         { count: projCount }, { count: expCount }, { count: eduCount }, 
-        { data: skillsData }, { count: srvCount }, { count: testCount }, { count: pageCount },
+        { data: skillsData }, { count: srvCount }, { count: testCount },
         ghData, anData
       ] = await Promise.all([
         supabase.from("portfolio_projects").select("*", { count: 'exact', head: true }),
@@ -52,7 +52,6 @@ export default function DashboardOverview() {
         supabase.from("portfolio_skills").select("items"),
         supabase.from("portfolio_services").select("*", { count: 'exact', head: true }),
         supabase.from("portfolio_testimonials").select("*", { count: 'exact', head: true }),
-        supabase.from("portfolio_pages").select("*", { count: 'exact', head: true }),
         fetch("/api/github").then(r => r.json()).catch(() => ({})),
         fetch("/api/analytics").then(r => r.json()).catch(() => ({ configured: false }))
       ]);
@@ -65,8 +64,7 @@ export default function DashboardOverview() {
         education: eduCount || 0,
         skills: totalSkills,
         services: srvCount || 0,
-        testimonials: testCount || 0,
-        pages: pageCount || 0
+        testimonials: testCount || 0
       });
       setGithub(ghData);
       setAnalytics(anData);
@@ -113,7 +111,7 @@ export default function DashboardOverview() {
         <StatCard title="Total Projects" value={stats.projects} icon={FolderKanban} href="/dashboard/cms/projects" color="indigo" />
         <StatCard title="Tech Skills" value={stats.skills} icon={Code2} href="/dashboard/cms/skills" color="blue" />
         <StatCard title="Experience" value={stats.experience} icon={Briefcase} href="/dashboard/cms/experience" color="emerald" />
-        <StatCard title="Pages Built" value={stats.pages} icon={LayoutTemplate} href="/dashboard/cms/pages" color="purple" />
+        <StatCard title="Services" value={stats.services} icon={Star} href="/dashboard/cms/services" color="purple" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -121,13 +119,13 @@ export default function DashboardOverview() {
         <div className="lg:col-span-1 bg-[#0d0d14] border border-[#1e1e2e] rounded-xl p-5">
           <h3 className="text-sm font-bold text-[#e2e2ef] mb-4 flex items-center gap-2"><PlusCircle className="w-4 h-4 text-indigo-400" /> Quick Actions</h3>
           <div className="space-y-2">
-            <Link href="/dashboard/cms/pages" className="flex items-center gap-3 p-3 rounded-lg border border-[#1e1e2e] hover:bg-[#1a1a24] hover:border-[#2a2a3a] transition-all group">
-              <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center shrink-0 group-hover:bg-indigo-500/20 transition-colors"><LayoutTemplate className="w-4 h-4 text-indigo-400" /></div>
-              <div><p className="text-xs font-semibold text-[#e2e2ef]">Buat Halaman</p><p className="text-[10px] text-[#8a8aaa]">Buka Puck Visual Builder</p></div>
-            </Link>
             <Link href="/dashboard/cms/projects" className="flex items-center gap-3 p-3 rounded-lg border border-[#1e1e2e] hover:bg-[#1a1a24] hover:border-[#2a2a3a] transition-all group">
               <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0 group-hover:bg-blue-500/20 transition-colors"><FolderKanban className="w-4 h-4 text-blue-400" /></div>
               <div><p className="text-xs font-semibold text-[#e2e2ef]">Tambah Project</p><p className="text-[10px] text-[#8a8aaa]">Upload karya terbaru</p></div>
+            </Link>
+            <Link href="/dashboard/cms/services" className="flex items-center gap-3 p-3 rounded-lg border border-[#1e1e2e] hover:bg-[#1a1a24] hover:border-[#2a2a3a] transition-all group">
+              <div className="w-8 h-8 rounded-lg bg-purple-500/10 flex items-center justify-center shrink-0 group-hover:bg-purple-500/20 transition-colors"><Star className="w-4 h-4 text-purple-400" /></div>
+              <div><p className="text-xs font-semibold text-[#e2e2ef]">Kelola Services</p><p className="text-[10px] text-[#8a8aaa]">Atur layanan utama</p></div>
             </Link>
             <Link href="/dashboard/cms/settings" className="flex items-center gap-3 p-3 rounded-lg border border-[#1e1e2e] hover:bg-[#1a1a24] hover:border-[#2a2a3a] transition-all group">
               <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0 group-hover:bg-emerald-500/20 transition-colors"><Settings className="w-4 h-4 text-emerald-400" /></div>
@@ -137,7 +135,7 @@ export default function DashboardOverview() {
         </div>
 
         {/* GitHub & Analytics */}
-        <div className="lg:col-span-2 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="lg:col-span-2 space-y-4">
           {/* GitHub Card */}
           <div className="bg-[#0d0d14] border border-[#1e1e2e] rounded-xl p-5 relative overflow-hidden">
             <div className="absolute -right-4 -top-4 opacity-5"><Github className="w-32 h-32" /></div>
@@ -148,31 +146,64 @@ export default function DashboardOverview() {
                   Token GitHub belum dikonfigurasi. Atur di <Link href="/dashboard/cms/settings" className="text-indigo-400 underline decoration-indigo-400/30 underline-offset-2">System Settings</Link>.
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-4 gap-y-6">
-                  <div>
-                    <p className="text-[10px] text-[#8a8aaa] font-medium uppercase tracking-wider mb-1">Total Stars</p>
-                    <p className="text-2xl font-bold text-[#e2e2ef] flex items-center gap-2">
-                      <Star className="w-5 h-5 text-yellow-500" /> {github.stats?.totalStars || 0}
-                    </p>
+                <div className="space-y-6">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                    <div>
+                      <p className="text-[10px] text-[#8a8aaa] font-medium uppercase tracking-wider mb-1">Total Stars</p>
+                      <p className="text-2xl font-bold text-[#e2e2ef] flex items-center gap-2">
+                        <Star className="w-5 h-5 text-yellow-500" /> {github.stats?.totalStars || 0}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-[#8a8aaa] font-medium uppercase tracking-wider mb-1">Followers</p>
+                      <p className="text-2xl font-bold text-[#e2e2ef] flex items-center gap-2">
+                        <Users className="w-5 h-5 text-blue-400" /> {github.user.followers || 0}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-[#8a8aaa] font-medium uppercase tracking-wider mb-1">Total Repos</p>
+                      <p className="text-2xl font-bold text-[#e2e2ef] flex items-center gap-2" title={`Public: ${github.user.publicRepos || 0}, Private: ${github.user.privateRepos || 0}`}>
+                        <FolderKanban className="w-5 h-5 text-emerald-400" /> {github.stats?.totalRepos || 0}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-[#8a8aaa] font-medium uppercase tracking-wider mb-1">Private Repos</p>
+                      <p className="text-2xl font-bold text-[#e2e2ef] flex items-center gap-2">
+                        <Lock className="w-5 h-5 text-red-400" /> {github.user.privateRepos || 0}
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-[10px] text-[#8a8aaa] font-medium uppercase tracking-wider mb-1">Followers</p>
-                    <p className="text-2xl font-bold text-[#e2e2ef] flex items-center gap-2">
-                      <Users className="w-5 h-5 text-blue-400" /> {github.user.followers || 0}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-[#8a8aaa] font-medium uppercase tracking-wider mb-1">Total Repos</p>
-                    <p className="text-2xl font-bold text-[#e2e2ef] flex items-center gap-2" title={`Public: ${github.user.publicRepos || 0}, Private: ${github.user.privateRepos || 0}`}>
-                      <FolderKanban className="w-5 h-5 text-emerald-400" /> {github.stats?.totalRepos || 0}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-[10px] text-[#8a8aaa] font-medium uppercase tracking-wider mb-1">Private Repos</p>
-                    <p className="text-2xl font-bold text-[#e2e2ef] flex items-center gap-2">
-                      <Lock className="w-5 h-5 text-red-400" /> {github.user.privateRepos || 0}
-                    </p>
-                  </div>
+                  
+                  {github.contributions && github.contributions.length > 0 && (
+                    <div className="pt-4 border-t border-[#1e1e2e]">
+                      <div className="flex items-center justify-between mb-3">
+                        <p className="text-[10px] text-[#8a8aaa] font-medium uppercase tracking-wider">Contributions (Last Year)</p>
+                        <p className="text-xs font-bold text-emerald-400">{github.stats?.totalContributions || 0} total</p>
+                      </div>
+                      <div className="flex overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-[#2a2a3a] scrollbar-track-transparent">
+                        <div className="flex gap-1" style={{ width: "max-content" }}>
+                          {/* Group by weeks (7 days) approx. The API returns it sequentially */}
+                          {Array.from({ length: Math.ceil(github.contributions.length / 7) }).map((_, weekIdx) => (
+                            <div key={weekIdx} className="flex flex-col gap-1">
+                              {github.contributions!.slice(weekIdx * 7, weekIdx * 7 + 7).map((day, dayIdx) => (
+                                <div 
+                                  key={dayIdx} 
+                                  title={`${day.count} contributions on ${day.date}`}
+                                  className={`w-3 h-3 rounded-sm ${
+                                    day.count === 0 ? "bg-[#1e1e2e]" : 
+                                    day.count <= 3 ? "bg-emerald-900" :
+                                    day.count <= 6 ? "bg-emerald-700" :
+                                    day.count <= 10 ? "bg-emerald-500" :
+                                    "bg-emerald-400"
+                                  }`}
+                                />
+                              ))}
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>

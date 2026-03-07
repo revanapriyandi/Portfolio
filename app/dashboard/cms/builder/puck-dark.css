@@ -1,0 +1,142 @@
+/**
+ * Puck Editor — Dark Theme Override
+ * Using REAL class names obtained from browser DevTools inspection.
+ * Classes use the pattern: _ClassName_hash_number
+ * We target them with [class*="ClassName"] attribute selectors.
+ */
+
+/* ── Layout wrapper ─────────────────────────────────────────── */
+[class*="_PuckLayout_"] {
+  background-color: #09090b !important;
+}
+
+/* ── Header / Toolbar ────────────────────────────────────────── */
+[class*="_PuckHeader_"] {
+  background-color: #0a0a0f !important;
+  border-bottom: 1px solid #1e1e2e !important;
+  color: #e4e4e7 !important;
+}
+
+[class*="_PuckHeader-inner_"] {
+  background-color: #0a0a0f !important;
+}
+
+/* ── Left Sidebar (Components) ──────────────────────────────── */
+[class*="_Sidebar--left_"],
+[class*="_Sidebar_"][class*="_Sidebar--left_"] {
+  background-color: #0d0d14 !important;
+  border-right: 1px solid #1e1e2e !important;
+  color: #a1a1aa !important;
+}
+
+/* ── Right Sidebar (Properties) ─────────────────────────────── */
+[class*="_Sidebar--right_"],
+[class*="_Sidebar_"][class*="_Sidebar--right_"] {
+  background-color: #0d0d14 !important;
+  border-left: 1px solid #1e1e2e !important;
+  color: #a1a1aa !important;
+}
+
+/* ── Sidebar sections ────────────────────────────────────────── */
+[class*="_SidebarSection_"] {
+  background-color: #0d0d14 !important;
+  border-color: #1e1e2e !important;
+}
+
+/* ── Fields area (right panel) ──────────────────────────────── */
+[class*="_PuckFields_"] {
+  background-color: #0d0d14 !important;
+  color: #a1a1aa !important;
+}
+
+/* ── Canvas ──────────────────────────────────────────────────── */
+[class*="_PuckCanvas_"] {
+  background-color: #06060a !important;
+}
+
+/* ── Component list items (draggables) ──────────────────────── */
+[class*="_DrawerItem_"],
+[class*="_ComponentList-item_"] {
+  background-color: #18181b !important;
+  border: 1px solid #27272a !important;
+  color: #d4d4d8 !important;
+  border-radius: 8px !important;
+}
+
+[class*="_DrawerItem_"]:hover,
+[class*="_ComponentList-item_"]:hover {
+  background-color: #27272a !important;
+  border-color: #3f3f46 !important;
+}
+
+/* ── Component list group titles ─────────────────────────────── */
+[class*="_ComponentList-title_"] {
+  color: #52525b !important;
+  font-size: 10px !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.1em !important;
+  font-weight: 600 !important;
+}
+
+/* ── Input fields ────────────────────────────────────────────── */
+[class*="_Input_"] input,
+[class*="_Textarea_"] textarea,
+[class*="_Select_"] select,
+[class*="_Field_"] input,
+[class*="_Field_"] textarea,
+[class*="_Field_"] select {
+  background-color: #18181b !important;
+  border-color: #27272a !important;
+  color: #fafafa !important;
+  border-radius: 6px !important;
+}
+
+[class*="_Field_"] input:focus,
+[class*="_Field_"] textarea:focus {
+  border-color: #3b82f6 !important;
+  outline: none !important;
+}
+
+/* ── Labels ──────────────────────────────────────────────────── */
+[class*="_FieldLabel_"],
+[class*="_InputWrapper-label_"],
+[class*="_Input-label_"] {
+  color: #71717a !important;
+  font-size: 11px !important;
+}
+
+/* ── Accordion / collapsible panels ─────────────────────────── */
+[class*="_Accordion_"],
+[class*="_FieldGroup_"],
+[class*="_Details_"] {
+  background-color: #111113 !important;
+  border-color: #1e1e2e !important;
+  color: #d4d4d8 !important;
+}
+
+/* ── Buttons in Puck chrome ──────────────────────────────────── */
+[class*="_ActionBar_"] {
+  background-color: #0d0d14 !important;
+  border-color: #1e1e2e !important;
+}
+
+[class*="_ActionBar-action_"] button {
+  color: #a1a1aa !important;
+}
+
+[class*="_ActionBar-action_"] button:hover {
+  background-color: #18181b !important;
+  color: #fafafa !important;
+}
+
+/* ── Drag overlay ghost ──────────────────────────────────────── */
+[class*="_DragIcon_"] {
+  color: #52525b !important;
+}
+
+/* ── Scrollbars ──────────────────────────────────────────────── */
+[class*="_Sidebar_"] *,
+[class*="_PuckFields_"] * {
+  scrollbar-color: #27272a #0d0d14;
+  scrollbar-width: thin;
+}
