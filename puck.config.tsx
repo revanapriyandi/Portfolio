@@ -56,8 +56,30 @@ function SectionWrapper({ children, className = "" }: { children: React.ReactNod
 export const config: Config<UserConfig, CustomRootProps> = {
   root: {
     fields: {
-      bgColor: { type: "text", label: "Background Color" },
-      accentColor: { type: "text", label: "Accent Color" },
+      bgColor: { 
+        type: "custom", 
+        render: ({ value, onChange }) => (
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-semibold text-gray-500">Background Color</label>
+            <div className="flex gap-2">
+              <input type="color" value={value} onChange={e => onChange(e.target.value)} className="w-8 h-8 rounded cursor-pointer" />
+              <input type="text" value={value} onChange={e => onChange(e.target.value)} className="flex-1 bg-gray-50 border border-gray-200 rounded px-2 text-sm" />
+            </div>
+          </div>
+        )
+      },
+      accentColor: { 
+        type: "custom", 
+        render: ({ value, onChange }) => (
+          <div className="flex flex-col gap-2">
+            <label className="text-xs font-semibold text-gray-500">Accent Color</label>
+            <div className="flex gap-2">
+              <input type="color" value={value} onChange={e => onChange(e.target.value)} className="w-8 h-8 rounded cursor-pointer" />
+              <input type="text" value={value} onChange={e => onChange(e.target.value)} className="flex-1 bg-gray-50 border border-gray-200 rounded px-2 text-sm" />
+            </div>
+          </div>
+        )
+      },
       customCss: { type: "textarea", label: "Custom CSS" },
     },
     defaultProps: { bgColor: "#000000", accentColor: "#6366f1", customCss: "" },

@@ -1,16 +1,35 @@
 "use client";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Plus, Trash2, Save, Loader2 } from "lucide-react";
+import { Plus, Trash2, Save, Loader2, Briefcase, Building2, Globe, FileCode2 } from "lucide-react";
 
-interface Exp { id: string; role: string; company: string; type: string; period: string; current: boolean; description: string; skills: string[]; sort_order: number; }
+interface Exp { 
+  id: string; 
+  role: string; 
+  company: string; 
+  type?: string; 
+  location?: string;
+  website?: string;
+  logo_url?: string;
+  start_date: string; 
+  end_date: string | null;
+  current: boolean; 
+  description: string; 
+  tech_stack?: string[]; 
+  sort_order: number; 
+}
+
+const EMPTY_EXP: Omit<Exp, "id" | "sort_order"> = {
+  role: "", company: "", type: "Full-time", location: "", website: "", logo_url: "",
+  start_date: "", end_date: "", current: false, description: "", tech_stack: []
+};
 
 export default function ExperienceEditor() {
   const supabase = createClient();
   const [items, setItems] = useState<Exp[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
-  const [toast, setToast] = useState("");
+  const [toast, setToast] = useState({ msg: "", ok: true });
 
   useEffect(() => {
     supabase.from("portfolio_experience").select("*").order("sort_order")
@@ -18,19 +37,23 @@ export default function ExperienceEditor() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(""), 2500); };
+  const showToast = (msg: string, ok = true) => { setToast({ msg, ok }); setTimeout(() => setToast({ msg: "", ok: true }), 2500); };
 
   async function handleSave(item: Exp) {
+    if (!item.company || !item.role) return;
     setSaving(item.id);
     const { id, ...rest } = item;
-    const { error } = id.startsWith("new-")
-      ? await supabase.from("portfolio_experience").insert(rest)
-      : await supabase.from("portfolio_experience").update(rest).eq("id", id);
-    if (!error && id.startsWith("new-")) {
-      const { data } = await supabase.from("portfolio_experience").select("*").order("sort_order");
-      setItems(data ?? []);
+    let error;
+    if (id.startsWith("new-")) {
+      ({ error } = await supabase.from("portfolio_experience").insert(rest));
+      if (!error) {
+        const { data } = await supabase.from("portfolio_experience").select("*").order("sort_order");
+        setItems(data ?? []);
+      }
+    } else {
+      ({ error } = await supabase.from("portfolio_experience").update(rest).eq("id", id));
     }
-    showToast(error ? "Gagal." : "Tersimpan!");
+    showToast(error ? "Gagal menyimpan." : "✓ Tersimpan!", !error);
     setSaving(null);
   }
 
@@ -38,56 +61,138 @@ export default function ExperienceEditor() {
     if (id.startsWith("new-")) { setItems(i => i.filter(x => x.id !== id)); return; }
     await supabase.from("portfolio_experience").delete().eq("id", id);
     setItems(i => i.filter(x => x.id !== id));
+    showToast("Berhasil dihapus.");
   }
 
-  function update(id: string, field: keyof Exp, value: Exp[typeof field]) {
+  function update<K extends keyof Exp>(id: string, field: K, value: Exp[K]) {
     setItems(i => i.map(x => x.id === id ? { ...x, [field]: value } : x));
   }
 
   function addNew() {
-    setItems(i => [...i, { id: `new-${Date.now()}`, role: "", company: "", type: "Full-time", period: "", current: false, description: "", skills: [], sort_order: i.length }]);
+    setItems(i => [...i, { id: `new-${Date.now()}`, ...EMPTY_EXP, sort_order: i.length }]);
   }
 
-  if (loading) return <div className="p-8 text-sm text-[#52525b]">Memuat...</div>;
-
-  const inp = "w-full bg-[#09090b] border border-[#27272a] rounded-md px-3 py-2 text-xs text-[#fafafa] focus:border-[#3b82f6] focus:outline-none";
+  if (loading) return <div className="flex items-center justify-center h-64"><Loader2 className="w-5 h-5 text-indigo-400 animate-spin" /></div>;
 
   return (
-    <div className="p-8 max-w-3xl">
-      <div className="flex items-center justify-between mb-6">
-        <div><h2 className="text-lg font-bold text-[#fafafa]">Experience</h2><p className="text-xs text-[#52525b] mt-1">Riwayat pekerjaan.</p></div>
-        <button onClick={addNew} className="inline-flex items-center gap-2 bg-[#3b82f6] hover:bg-[#2563eb] text-white text-xs font-medium px-4 py-2 rounded-md transition-colors">
-          <Plus className="w-3.5 h-3.5" /> Tambah
-        </button>
+    <div className="p-6 max-w-4xl space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-lg font-bold text-[#e2e2ef] flex items-center gap-2"><Briefcase className="w-5 h-5 text-indigo-400" />Experience</h1>
+          <p className="text-xs text-[#4a4a6a] mt-1">{items.length} pengalaman kerja otomatis diurutkan</p>
+        </div>
+        <div className="flex items-center gap-3">
+          {toast.msg && <span className={`text-xs ${toast.ok ? "text-emerald-400" : "text-red-400"}`}>{toast.msg}</span>}
+          <button onClick={addNew} className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors">
+            <Plus className="w-3.5 h-3.5" /> Tambah
+          </button>
+        </div>
       </div>
-      {toast && <p className="text-xs text-emerald-400 mb-4">{toast}</p>}
 
       <div className="space-y-4">
         {items.map((item) => (
-          <div key={item.id} className="border border-[#27272a] rounded-xl p-4 bg-[#111113] space-y-3">
-            <div className="grid grid-cols-2 gap-3">
-              {[["role", "Jabatan"], ["company", "Perusahaan"], ["type", "Tipe (Full-time/Internship)"], ["period", "Periode"]].map(([k, l]) => (
-                <div key={k}><label className="text-[10px] text-[#52525b] mb-1 block">{l}</label>
-                  <input value={(item[k as keyof Exp] as string) ?? ""} onChange={e => update(item.id, k as keyof Exp, e.target.value)} className={inp} /></div>
-              ))}
+          <div key={item.id} className="bg-[#0d0d14] border border-[#1e1e2e] rounded-xl p-5 space-y-4 hover:border-[#2a2a3a] transition-colors relative overflow-hidden">
+            {/* Status indicator */}
+            {item.current && <div className="absolute top-0 right-0 border-b-2 border-l-2 border-[#1e1e2e] bg-indigo-600 px-3 py-1 rounded-bl-xl text-[10px] font-bold text-white uppercase tracking-wider">Current</div>}
+            
+            {/* Row 1: Role, Company, Type, Location */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="space-y-1.5 lg:col-span-2">
+                <label className="text-xs font-medium text-[#c2c2df] flex items-center gap-1"><Briefcase className="w-3 h-3 text-[#6a6a8a]" /> Role / Jabatan</label>
+                <input value={item.role ?? ""} onChange={e => update(item.id, "role", e.target.value)} placeholder="Software Engineer"
+                  className="w-full bg-[#12121c] border border-[#1e1e2e] rounded-lg px-3 py-2 text-sm text-[#e2e2ef] focus:outline-none focus:border-indigo-500" />
+              </div>
+              <div className="space-y-1.5 lg:col-span-2">
+                <label className="text-xs font-medium text-[#c2c2df] flex items-center gap-1"><Building2 className="w-3 h-3 text-[#6a6a8a]" /> Perusahaan</label>
+                <input value={item.company ?? ""} onChange={e => update(item.id, "company", e.target.value)} placeholder="Tech Innovations Ltd."
+                  className="w-full bg-[#12121c] border border-[#1e1e2e] rounded-lg px-3 py-2 text-sm text-[#e2e2ef] focus:outline-none focus:border-indigo-500" />
+              </div>
+              <div className="space-y-1.5 lg:col-span-1">
+                <label className="text-xs font-medium text-[#c2c2df]">Tipe</label>
+                <input value={item.type ?? "Full-time"} onChange={e => update(item.id, "type", e.target.value)} placeholder="Full-time"
+                  className="w-full bg-[#12121c] border border-[#1e1e2e] rounded-lg px-3 py-2 text-sm text-[#e2e2ef] focus:outline-none focus:border-indigo-500" />
+              </div>
+              <div className="space-y-1.5 lg:col-span-1">
+                <label className="text-xs font-medium text-[#c2c2df]">Lokasi</label>
+                <input value={item.location ?? ""} onChange={e => update(item.id, "location", e.target.value)} placeholder="Jakarta, Indonesia (Hybrid)"
+                  className="w-full bg-[#12121c] border border-[#1e1e2e] rounded-lg px-3 py-2 text-sm text-[#e2e2ef] focus:outline-none focus:border-indigo-500" />
+              </div>
+              <div className="space-y-1.5 lg:col-span-1">
+                <label className="text-xs font-medium text-[#c2c2df]">Tanggal Mulai</label>
+                <input value={item.start_date ?? ""} onChange={e => update(item.id, "start_date", e.target.value)} placeholder="Sep 2021"
+                  className="w-full bg-[#12121c] border border-[#1e1e2e] rounded-lg px-3 py-2 text-sm text-[#e2e2ef] focus:outline-none focus:border-indigo-500" />
+              </div>
+              <div className="space-y-1.5 lg:col-span-1">
+                <label className="text-xs font-medium text-[#c2c2df]">Tanggal Selesai</label>
+                <input value={item.end_date ?? ""} onChange={e => update(item.id, "end_date", e.target.value)} disabled={item.current} placeholder={item.current ? "Present" : "Des 2024"}
+                  className="w-full bg-[#12121c] border border-[#1e1e2e] rounded-lg px-3 py-2 text-sm text-[#e2e2ef] disabled:opacity-50 disabled:cursor-not-allowed focus:outline-none focus:border-indigo-500" />
+              </div>
             </div>
-            <div><label className="text-[10px] text-[#52525b] mb-1 block">Deskripsi</label>
-              <textarea rows={2} value={item.description} onChange={e => update(item.id, "description", e.target.value)} className={`${inp} resize-none`} /></div>
-            <div><label className="text-[10px] text-[#52525b] mb-1 block">Skills (pisah koma)</label>
-              <input value={item.skills?.join(", ")} onChange={e => update(item.id, "skills", e.target.value.split(",").map(s => s.trim()).filter(Boolean))} className={inp} /></div>
-            <div className="flex items-center justify-between pt-1">
-              <label className="flex items-center gap-2 cursor-pointer text-xs text-[#71717a]">
-                <input type="checkbox" checked={item.current} onChange={e => update(item.id, "current", e.target.checked)} /> Posisi saat ini
+
+            {/* Row 2: Website & Logo */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-[#c2c2df] flex items-center gap-1"><Globe className="w-3 h-3 text-[#6a6a8a]" /> Website Perusahaan</label>
+                <input value={item.website ?? ""} onChange={e => update(item.id, "website", e.target.value)} placeholder="https://..."
+                  className="w-full bg-[#12121c] border border-[#1e1e2e] rounded-lg px-3 py-2 text-sm text-[#e2e2ef] focus:outline-none focus:border-indigo-500" />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-[#c2c2df]">Logo URL</label>
+                <input value={item.logo_url ?? ""} onChange={e => update(item.id, "logo_url", e.target.value)} placeholder="https://..."
+                  className="w-full bg-[#12121c] border border-[#1e1e2e] rounded-lg px-3 py-2 text-sm text-[#e2e2ef] focus:outline-none focus:border-indigo-500" />
+              </div>
+            </div>
+
+            {/* Row 3: Description */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-[#c2c2df]">Deskripsi / Pencapaian</label>
+              <textarea rows={3} value={item.description ?? ""} onChange={e => update(item.id, "description", e.target.value)} placeholder="- Merancang arsitektur microservices..."
+                className="w-full bg-[#12121c] border border-[#1e1e2e] rounded-lg px-3 py-2 text-sm text-[#e2e2ef] resize-none focus:outline-none focus:border-indigo-500" />
+            </div>
+
+            {/* Row 4: Tech Stack */}
+            <div className="space-y-1.5">
+              <label className="text-xs font-medium text-[#c2c2df] flex items-center gap-1"><FileCode2 className="w-3 h-3 text-[#6a6a8a]" /> Tech Stack (Pisahkan dengan koma)</label>
+              <input value={item.tech_stack?.join(", ") ?? ""} 
+                onChange={e => update(item.id, "tech_stack", e.target.value.split(",").map(s => s.trim()).filter(Boolean))} 
+                placeholder="React, Next.js, Node.js, Go"
+                className="w-full bg-[#12121c] border border-[#1e1e2e] rounded-lg px-3 py-2 text-sm text-[#e2e2ef] focus:outline-none focus:border-indigo-500" />
+              {item.tech_stack && item.tech_stack.length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-1.5">
+                  {item.tech_stack.map((t) => (
+                    <span key={t} className="text-[10px] px-2 py-0.5 bg-indigo-600/10 border border-indigo-600/20 text-indigo-400 rounded-md">{t}</span>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center justify-between pt-2 border-t border-[#1e1e2e]">
+              <label className="flex items-center gap-2 cursor-pointer text-xs text-[#a1a1aa] hover:text-[#e2e2ef] transition-colors">
+                <button onClick={() => update(item.id, "current", !item.current)}
+                  className={`w-8 h-4 rounded-full transition-colors relative ${item.current ? "bg-indigo-600" : "bg-[#2a2a3a]"}`}>
+                  <span className={`absolute top-0.5 w-3 h-3 rounded-full bg-white transition-transform ${item.current ? "translate-x-4" : "translate-x-0.5"}`} />
+                </button>
+                Saya masih bekerja di sini
               </label>
               <div className="flex gap-2">
-                <button onClick={() => handleDelete(item.id)} className="inline-flex items-center gap-1.5 text-xs text-[#52525b] hover:text-red-400 px-3 py-1.5 rounded-md hover:bg-red-400/5 transition-colors"><Trash2 className="w-3.5 h-3.5" /> Hapus</button>
-                <button onClick={() => handleSave(item)} disabled={saving === item.id} className="inline-flex items-center gap-1.5 bg-[#3b82f6] hover:bg-[#2563eb] disabled:opacity-50 text-white text-xs px-3 py-1.5 rounded-md transition-colors">
+                <button onClick={() => handleDelete(item.id)} className="flex items-center gap-1.5 text-xs text-[#6a6a8a] py-1.5 px-3 rounded-lg hover:text-red-400 hover:bg-red-400/10 transition-colors">
+                  <Trash2 className="w-3.5 h-3.5" /> Hapus
+                </button>
+                <button onClick={() => handleSave(item)} disabled={saving === item.id || !item.company || !item.role} 
+                  className="flex items-center gap-1.5 bg-indigo-600 hover:bg-indigo-500 disabled:opacity-50 text-white text-xs font-semibold px-4 py-1.5 rounded-lg transition-colors">
                   {saving === item.id ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Save className="w-3.5 h-3.5" />} Simpan
                 </button>
               </div>
             </div>
           </div>
         ))}
+        {items.length === 0 && (
+          <div className="text-center py-16 text-[#3a3a5a]">
+            <Briefcase className="w-10 h-10 mx-auto mb-3 opacity-40" />
+            <p className="text-sm">Belum ada pengalaman kerja ditambahkan.</p>
+          </div>
+        )}
       </div>
     </div>
   );
