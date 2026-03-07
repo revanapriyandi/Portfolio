@@ -19,9 +19,14 @@ export async function GET() {
   };
 
   try {
+    const userUrl = TOKEN ? "https://api.github.com/user" : `https://api.github.com/users/${USERNAME}`;
+    const reposUrl = TOKEN 
+      ? "https://api.github.com/user/repos?type=all&per_page=100&sort=updated" 
+      : `https://api.github.com/users/${USERNAME}/repos?per_page=100&sort=updated`;
+
     const [userRes, reposRes] = await Promise.all([
-      fetch(`https://api.github.com/users/${USERNAME}`, { headers, next: { revalidate: 3600 } }),
-      fetch(`https://api.github.com/users/${USERNAME}/repos?sort=stars&per_page=100`, { headers, next: { revalidate: 3600 } }),
+      fetch(userUrl, { headers, next: { revalidate: 3600 } }),
+      fetch(reposUrl, { headers, next: { revalidate: 3600 } }),
     ]);
 
     if (!userRes.ok) {
@@ -73,9 +78,16 @@ export async function GET() {
         followers: user.followers,
         following: user.following,
         publicRepos: user.public_repos,
+        privateRepos: user.total_private_repos || 0,
         profileUrl: user.html_url,
       },
-      stats: { totalStars, totalForks, totalRepos: repos.length },
+      stats: { 
+        totalStars, 
+        totalForks, 
+        totalRepos: repos.length,
+        publicRepos: user.public_repos || 0,
+        privateRepos: user.total_private_repos || 0
+      },
       languages,
       topRepos,
     });

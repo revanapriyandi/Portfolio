@@ -6,7 +6,7 @@ import Link from "next/link";
 import {
   FolderKanban, Briefcase, Code2, 
   Settings, LayoutTemplate, PlusCircle, ArrowUpRight,
-  Github, Activity, Users, Star, Eye
+  Github, Activity, Users, Star, Eye, Lock
 } from "lucide-react";
 
 interface Stats {
@@ -20,8 +20,8 @@ interface Stats {
 }
 
 interface GithubData {
-  user?: { name: string; followers: number; publicRepos: number; profileUrl: string };
-  stats?: { totalStars: number; totalForks: number; totalRepos: number };
+  user?: { name: string; followers: number; publicRepos: number; privateRepos: number; profileUrl: string };
+  stats?: { totalStars: number; totalForks: number; totalRepos: number; publicRepos: number; privateRepos: number };
 }
 
 interface AnalyticsData {
@@ -148,17 +148,29 @@ export default function DashboardOverview() {
                   Token GitHub belum dikonfigurasi. Atur di <Link href="/dashboard/cms/settings" className="text-indigo-400 underline decoration-indigo-400/30 underline-offset-2">System Settings</Link>.
                 </div>
               ) : (
-                <div className="grid grid-cols-2 gap-4">
+                <div className="grid grid-cols-2 gap-4 gap-y-6">
                   <div>
                     <p className="text-[10px] text-[#8a8aaa] font-medium uppercase tracking-wider mb-1">Total Stars</p>
                     <p className="text-2xl font-bold text-[#e2e2ef] flex items-center gap-2">
-                      <Star className="w-4 h-4 text-yellow-500" /> {github.stats?.totalStars || 0}
+                      <Star className="w-5 h-5 text-yellow-500" /> {github.stats?.totalStars || 0}
                     </p>
                   </div>
                   <div>
                     <p className="text-[10px] text-[#8a8aaa] font-medium uppercase tracking-wider mb-1">Followers</p>
                     <p className="text-2xl font-bold text-[#e2e2ef] flex items-center gap-2">
-                      <Users className="w-4 h-4 text-blue-400" /> {github.user.followers || 0}
+                      <Users className="w-5 h-5 text-blue-400" /> {github.user.followers || 0}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-[#8a8aaa] font-medium uppercase tracking-wider mb-1">Total Repos</p>
+                    <p className="text-2xl font-bold text-[#e2e2ef] flex items-center gap-2" title={`Public: ${github.user.publicRepos || 0}, Private: ${github.user.privateRepos || 0}`}>
+                      <FolderKanban className="w-5 h-5 text-emerald-400" /> {github.stats?.totalRepos || 0}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-[#8a8aaa] font-medium uppercase tracking-wider mb-1">Private Repos</p>
+                    <p className="text-2xl font-bold text-[#e2e2ef] flex items-center gap-2">
+                      <Lock className="w-5 h-5 text-red-400" /> {github.user.privateRepos || 0}
                     </p>
                   </div>
                 </div>
