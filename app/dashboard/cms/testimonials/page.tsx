@@ -62,6 +62,7 @@ export default function TestimonialsPage() {
     setLoading(false);
   }, [supabase]);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { load(); }, [load]);
 
   const openCreate = () => { setForm({ ...EMPTY }); setEditId(null); };

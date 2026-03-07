@@ -18,6 +18,7 @@ export interface PersonalInfo {
   linkedin_url?: string;
   twitter?: string;
   twitter_url?: string;
+  fastwork_username?: string;
   open_to_work?: boolean;
   availability_text?: string;
   years_of_exp?: number;
@@ -70,10 +71,33 @@ export interface SkillCategory {
   item_icons?: Record<string, string>;
 }
 
+export interface ServiceItem {
+  id: string;
+  title: string;
+  description: string;
+  icon?: string;
+}
+
+export interface TestimonialItem {
+  id: string;
+  name: string;
+  company?: string;
+  content: string;
+}
+
 export interface PortfolioData {
   personal?: PersonalInfo;
   experience?: ExperienceItem[];
   education?: EducationItem[];
   projects?: ProjectItem[];
   skills?: SkillCategory[];
+  services?: ServiceItem[];
+  testimonials?: TestimonialItem[];
+}
+
+export interface ThemeSettings {
+  accent: string;
+  bg: string;
+  siteTitle?: string;
+  siteDescription?: string;
 }

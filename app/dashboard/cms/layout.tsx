@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import {
   LayoutDashboard, User, FolderKanban, Wrench, Briefcase,
   GraduationCap, LogOut, ExternalLink, ChevronRight, Github,
-  Settings, MessageSquare, Star, Menu, X, Mail
+  Settings, MessageSquare, Star, Menu, X, Mail, Palette
 } from "lucide-react";
 
 const mainNav = [
@@ -98,6 +98,13 @@ export default function CMSLayout({ children }: { children: React.ReactNode }) {
             {contentNav.map(item => (
               <NavItem key={item.href} {...item} pathname={pathname} />
             ))}
+          </div>
+        </div>
+        {/* Tampilan */}
+        <div>
+          <p className="text-[9px] font-semibold text-[#3a3a5a] uppercase tracking-widest px-2 mb-2">Tampilan</p>
+          <div className="space-y-0.5">
+            <NavItem href="/dashboard/cms/appearance" label="Appearance" icon={Palette} pathname={pathname} />
           </div>
         </div>
       </div>

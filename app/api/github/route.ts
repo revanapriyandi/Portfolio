@@ -143,6 +143,14 @@ export async function GET() {
         totalContributions
       },
       languages,
+      repos: repos.map((r) => ({
+        name: r.name,
+        description: r.description,
+        language: r.language,
+        url: r.html_url,
+        private: r.private,
+        updatedAt: r.updated_at,
+      })),
       topRepos,
       contributions,
     });

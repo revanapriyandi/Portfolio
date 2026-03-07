@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Save, Loader2, GripVertical, Check, Palette } from "lucide-react";
-import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
+import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from "@dnd-kit/core";
 import { arrayMove, SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 
@@ -17,10 +17,65 @@ const SECTION_LABELS: Record<string, string> = {
   education: "Education & Certs",
 };
 
-// Templates available
+// Templates available — preview adalah mini mockup SVG
 const TEMPLATES = [
-  { id: "minimal", name: "Minimal", desc: "Clean, text-focused design dengan layout centered." },
-  { id: "bento", name: "Bento Grid", desc: "Modern card-based layout ala bento box." },
+  {
+    id: "template1",
+    name: "Modern Hacker",
+    desc: "Glassmorphism modern, dark background dengan efek glow.",
+    preview: (
+      <svg viewBox="0 0 200 120" className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+        <rect width="200" height="120" fill="#0b0c15"/>
+        <rect x="20" y="20" width="80" height="8" rx="2" fill="#4f46e5" opacity="0.8"/>
+        <rect x="20" y="34" width="120" height="5" rx="2" fill="#6a6a8a" opacity="0.6"/>
+        <rect x="20" y="42" width="90" height="5" rx="2" fill="#6a6a8a" opacity="0.4"/>
+        <rect x="20" y="60" width="50" height="12" rx="6" fill="#4f46e5"/>
+        <rect x="76" y="60" width="50" height="12" rx="6" fill="none" stroke="#4f46e5" strokeWidth="1"/>
+        <circle cx="160" cy="40" r="22" fill="#1a1a2e" stroke="#4f46e5" strokeWidth="0.5" opacity="0.8"/>
+        <circle cx="160" cy="40" r="10" fill="#4f46e5" opacity="0.4"/>
+        <rect x="20" y="90" width="160" height="1" fill="#1e1e2e"/>
+        <rect x="60" y="98" width="80" height="4" rx="2" fill="#3a3a5a"/>
+      </svg>
+    ),
+  },
+  {
+    id: "template2",
+    name: "Elegant Minimalist",
+    desc: "Desain putih bersih, tipografi serif, banyak white-space.",
+    preview: (
+      <svg viewBox="0 0 200 120" className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+        <rect width="200" height="120" fill="#fafafa"/>
+        <rect x="0" y="0" width="200" height="14" fill="#ffffff" opacity="0.9"/>
+        <rect x="12" y="4" width="30" height="5" rx="1" fill="#111827"/>
+        <rect x="120" y="4" width="20" height="5" rx="1" fill="#9ca3af"/>
+        <rect x="148" y="4" width="20" height="5" rx="1" fill="#9ca3af"/>
+        <rect x="20" y="26" width="40" height="4" rx="1" fill="#d1d5db"/>
+        <rect x="20" y="34" width="140" height="12" rx="2" fill="#111827"/>
+        <rect x="20" y="50" width="100" height="5" rx="1" fill="#9ca3af"/>
+        <rect x="20" y="58" width="80" height="5" rx="1" fill="#9ca3af"/>
+        <rect x="20" y="74" width="36" height="10" rx="0" fill="#111827"/>
+        <rect x="62" y="74" width="36" height="10" rx="0" fill="none" stroke="#d1d5db" strokeWidth="1"/>
+        <rect x="0" y="110" width="200" height="10" fill="#f3f4f6"/>
+      </svg>
+    ),
+  },
+  {
+    id: "bento",
+    name: "Bento Grid",
+    desc: "Modern card-based layout ala bento box. (Segera hadir)",
+    preview: (
+      <svg viewBox="0 0 200 120" className="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+        <rect width="200" height="120" fill="#0a0a10"/>
+        <rect x="10" y="10" width="85" height="55" rx="4" fill="#12121e" stroke="#2a2a3a" strokeWidth="0.5"/>
+        <rect x="105" y="10" width="85" height="25" rx="4" fill="#12121e" stroke="#2a2a3a" strokeWidth="0.5"/>
+        <rect x="105" y="40" width="40" height="25" rx="4" fill="#4f46e5" opacity="0.6"/>
+        <rect x="150" y="40" width="40" height="25" rx="4" fill="#12121e" stroke="#2a2a3a" strokeWidth="0.5"/>
+        <rect x="10" y="70" width="40" height="40" rx="4" fill="#12121e" stroke="#2a2a3a" strokeWidth="0.5"/>
+        <rect x="55" y="70" width="85" height="40" rx="4" fill="#12121e" stroke="#2a2a3a" strokeWidth="0.5"/>
+        <rect x="145" y="70" width="45" height="40" rx="4" fill="#12121e" stroke="#2a2a3a" strokeWidth="0.5"/>
+      </svg>
+    ),
+  },
 ];
 
 function SortableItem({ id, label, visible, onToggle }: { id: string; label: string; visible: boolean; onToggle: () => void }) {
@@ -56,17 +111,24 @@ export default function AppearanceEditor() {
   const sensors = useSensors(useSensor(PointerSensor), useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }));
 
   useEffect(() => {
-    supabase.from("portfolio_settings").select("*").limit(1).single()
-      .then(({ data }) => {
+    const load = async () => {
+      try {
+        const { data, error } = await supabase.from("portfolio_system_settings").select("*").limit(1).single();
+        if (error) console.error("Error fetching appearance settings:", error);
         if (data) {
           setSettingsId(data.id);
-          setTemplate(data.active_template);
+          setTemplate(data.active_template ?? "template1");
           setOrder(data.section_order ?? []);
           setVisible(data.visible_sections ?? []);
           if (data.theme) setTheme(data.theme);
         }
+      } catch (err) {
+        console.error("Unexpected error:", err);
+      } finally {
         setLoading(false);
-      });
+      }
+    };
+    load();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -75,7 +137,7 @@ export default function AppearanceEditor() {
   async function handleSave() {
     if (!settingsId) return;
     setSaving(true);
-    const { error } = await supabase.from("portfolio_settings").update({
+    const { error } = await supabase.from("portfolio_system_settings").update({
       active_template: template,
       section_order: order,
       visible_sections: visible,
@@ -85,12 +147,12 @@ export default function AppearanceEditor() {
     setSaving(false);
   }
 
-  function handleDragEnd(event: any) {
+  function handleDragEnd(event: DragEndEvent) {
     const { active, over } = event;
     if (active.id !== over?.id) {
       setOrder((items) => {
-        const oldIndex = items.indexOf(active.id);
-        const newIndex = items.indexOf(over.id);
+        const oldIndex = items.indexOf(active.id as string);
+        const newIndex = items.indexOf(over!.id as string);
         return arrayMove(items, oldIndex, newIndex);
       });
     }
@@ -118,12 +180,19 @@ export default function AppearanceEditor() {
         {/* Templates */}
         <div className="space-y-4">
           <div className="flex items-center gap-2 text-sm font-bold text-[#e2e2ef]"><Palette className="w-4 h-4 text-indigo-400" /> Active Template</div>
-          <div className="grid sm:grid-cols-2 gap-3">
+          <div className="grid sm:grid-cols-3 gap-3">
             {TEMPLATES.map(t => (
-              <div key={t.id} onClick={() => setTemplate(t.id)} className={`relative cursor-pointer border rounded-xl p-4 transition-all ${template === t.id ? "border-indigo-500 bg-indigo-600/5 ring-1 ring-indigo-500/50" : "border-[#1e1e2e] bg-[#0d0d14] hover:bg-[#14141f] hover:border-[#2a2a3a]"}`}>
-                {template === t.id && <div className="absolute top-3 right-3 w-5 h-5 bg-indigo-500 rounded-full flex items-center justify-center"><Check className="w-3 h-3 text-white" /></div>}
-                <p className="font-semibold text-[#e2e2ef] mb-1">{t.name}</p>
-                <p className="text-[10px] text-[#6a6a8a] leading-relaxed pr-6">{t.desc}</p>
+              <div key={t.id} onClick={() => setTemplate(t.id)} className={`relative cursor-pointer border rounded-xl overflow-hidden transition-all ${template === t.id ? "border-indigo-500 ring-1 ring-indigo-500/50" : "border-[#1e1e2e] bg-[#0d0d14] hover:border-[#2a2a3a]"}`}>
+                {/* Preview Mockup */}
+                <div className="w-full h-24 overflow-hidden bg-[#08080f]">
+                  {t.preview}
+                </div>
+                {/* Info */}
+                <div className="p-3 relative">
+                  {template === t.id && <div className="absolute top-2.5 right-2.5 w-4 h-4 bg-indigo-500 rounded-full flex items-center justify-center"><Check className="w-2.5 h-2.5 text-white" /></div>}
+                  <p className="font-semibold text-[#e2e2ef] text-xs mb-0.5">{t.name}</p>
+                  <p className="text-[10px] text-[#6a6a8a] leading-relaxed pr-4 line-clamp-2">{t.desc}</p>
+                </div>
               </div>
             ))}
           </div>

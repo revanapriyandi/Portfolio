@@ -10,6 +10,8 @@ import {
   ExternalLink,
   Github,
   FolderKanban,
+  Download,
+  X,
 } from "lucide-react";
 import { ImageUpload } from "@/components/image-upload";
 
@@ -25,6 +27,14 @@ interface Project {
   featured: boolean;
   status: "published" | "draft";
   sort_order: number;
+}
+
+interface GithubRepo {
+  name: string;
+  description?: string | null;
+  language?: string | null;
+  url: string;
+  private?: boolean;
 }
 
 const EMPTY: Omit<Project, "id"> = {
@@ -57,6 +67,11 @@ export default function ProjectsEditor() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
   const [toast, setToast] = useState({ msg: "", ok: true });
+  const [importOpen, setImportOpen] = useState(false);
+  const [loadingRepos, setLoadingRepos] = useState(false);
+  const [repos, setRepos] = useState<GithubRepo[]>([]);
+  const [importingRepo, setImportingRepo] = useState<string | null>(null);
+  const [repoQuery, setRepoQuery] = useState("");
 
   useEffect(() => {
     supabase
@@ -132,6 +147,72 @@ export default function ProjectsEditor() {
     );
   }
 
+  async function loadGithubRepos() {
+    setLoadingRepos(true);
+    try {
+      const res = await fetch("/api/github");
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "GitHub API error");
+
+      const mapped: GithubRepo[] = (data.repos ?? []).map((repo: {
+        name: string; description?: string | null; language?: string | null; url: string; private?: boolean;
+      }) => ({
+        name: repo.name,
+        description: repo.description,
+        language: repo.language,
+        url: repo.url,
+        private: repo.private,
+      }));
+      setRepos(mapped);
+    } catch {
+      setRepos([]);
+      showToast("Gagal memuat repo GitHub. Cek token/username di Settings.", false);
+    } finally {
+      setLoadingRepos(false);
+    }
+  }
+
+  async function openImportModal() {
+    setImportOpen(true);
+    setRepoQuery("");
+    if (repos.length === 0) await loadGithubRepos();
+  }
+
+  function importFromGithub(repo: GithubRepo) {
+    setImportingRepo(repo.url);
+    const exists = projects.some((project) => project.github?.toLowerCase() === repo.url.toLowerCase());
+    if (exists) {
+      showToast("Repo ini sudah ada di daftar project.", false);
+      setImportingRepo(null);
+      return;
+    }
+
+    const category = repo.language?.toLowerCase().includes("swift")
+      ? "mobile"
+      : repo.language?.toLowerCase().includes("kotlin")
+        ? "mobile"
+        : repo.language?.toLowerCase().includes("python")
+          ? "ml"
+          : "web";
+
+    setProjects((prev) => [
+      ...prev,
+      {
+        id: `new-${Date.now()}`,
+        ...EMPTY,
+        title: repo.name,
+        description: repo.description || "Project imported from GitHub.",
+        github: repo.url,
+        tags: repo.language ? [repo.language] : [],
+        category,
+        sort_order: prev.length,
+      },
+    ]);
+    setImportingRepo(null);
+    setImportOpen(false);
+    showToast("Repo berhasil ditambahkan. Tinggal review lalu Simpan.");
+  }
+
   if (loading)
     return (
       <div className="flex items-center justify-center h-64">
@@ -159,6 +240,12 @@ export default function ProjectsEditor() {
               {toast.msg}
             </span>
           )}
+          <button
+            onClick={openImportModal}
+            className="flex items-center gap-2 bg-[#12121c] border border-[#1e1e2e] hover:border-[#2a2a3a] text-[#c2c2df] text-xs font-semibold px-4 py-2 rounded-lg transition-colors"
+          >
+            <Download className="w-3.5 h-3.5" /> Import GitHub
+          </button>
           <button
             onClick={addNew}
             className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors"
@@ -350,6 +437,66 @@ export default function ProjectsEditor() {
           </div>
         )}
       </div>
+
+      {importOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setImportOpen(false)} />
+          <div className="relative w-full max-w-2xl rounded-2xl border border-[#1e1e2e] bg-[#0d0d14] p-5">
+            <div className="mb-4 flex items-center justify-between">
+              <div>
+                <h2 className="text-sm font-bold text-[#e2e2ef]">Import Project dari GitHub</h2>
+                <p className="mt-1 text-[11px] text-[#6a6a8a]">Pilih repo untuk ditambahkan sebagai draft project.</p>
+              </div>
+              <button onClick={() => setImportOpen(false)} className="rounded-lg p-1.5 text-[#6a6a8a] hover:bg-[#1e1e2e] hover:text-[#c2c2df]">
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            {loadingRepos ? (
+              <div className="flex h-40 items-center justify-center">
+                <Loader2 className="h-5 w-5 animate-spin text-indigo-400" />
+              </div>
+            ) : repos.length === 0 ? (
+              <div className="rounded-xl border border-dashed border-[#27272a] p-6 text-center text-xs text-[#6a6a8a]">
+                Repo tidak ditemukan. Pastikan GitHub username/token sudah diisi di Settings.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <input
+                  value={repoQuery}
+                  onChange={(e) => setRepoQuery(e.target.value)}
+                  placeholder="Cari nama repo..."
+                  className="w-full rounded-lg border border-[#1e1e2e] bg-[#111116] px-3 py-2 text-xs text-[#e2e2ef] placeholder-[#5a5a72] focus:border-indigo-500 focus:outline-none"
+                />
+                <div className="max-h-[360px] space-y-2 overflow-y-auto pr-1">
+                  {repos
+                    .filter((repo) => repo.name.toLowerCase().includes(repoQuery.toLowerCase()))
+                    .map((repo) => (
+                  <div key={repo.url} className="flex items-center justify-between rounded-xl border border-[#1e1e2e] bg-[#12121c] p-3">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="truncate text-sm font-semibold text-[#e2e2ef]">{repo.name}</p>
+                        <span className={`rounded-full px-1.5 py-0.5 text-[10px] ${repo.private ? "bg-amber-500/15 text-amber-300 border border-amber-500/30" : "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30"}`}>
+                          {repo.private ? "Private" : "Public"}
+                        </span>
+                      </div>
+                      <p className="mt-0.5 truncate text-[11px] text-[#6a6a8a]">{repo.description || "No description"}</p>
+                    </div>
+                    <button
+                      onClick={() => importFromGithub(repo)}
+                      disabled={importingRepo === repo.url}
+                      className="ml-3 rounded-lg bg-indigo-600 px-3 py-1.5 text-[11px] font-semibold text-white hover:bg-indigo-500 disabled:opacity-50"
+                    >
+                      {importingRepo === repo.url ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Import"}
+                    </button>
+                  </div>
+                ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

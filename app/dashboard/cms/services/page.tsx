@@ -52,6 +52,7 @@ export default function ServicesPage() {
     setLoading(false);
   }, [supabase]);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { load(); }, [load]);
 
   const openCreate = () => { setForm({ ...EMPTY }); setEditId(null); setFeatureInput(""); };

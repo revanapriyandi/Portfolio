@@ -217,7 +217,7 @@ create table portfolio_system_settings (
   site_url                    text,
   og_image                    text,
   -- Template
-  active_template             text default 'puck',
+  active_template             text default 'template1',
   -- GitHub Integration
   github_username             text,
   github_token                text,
@@ -226,17 +226,27 @@ create table portfolio_system_settings (
   ga4_property_id             text,
   ga_credentials_json         text,
   -- Appearance
-  theme                       jsonb default '{"accent":"#6366f1","bg":"#000000","fontMono":false,"roundness":"md"}'::jsonb,
-  -- Section order (untuk template minimal)
-  section_order               text[] default array['hero','about','skills','projects','experience','contact'],
-  visible_sections            text[] default array['hero','about','skills','projects','experience','contact'],
+  theme                       jsonb default '{"accent":"#4f46e5","bg":"#0b0b12","fontMono":false,"roundness":"md"}'::jsonb,
+  -- Section order & visibility
+  section_order               text[] default array['hero','projects','skills','experience','education','contact'],
+  visible_sections            text[] default array['hero','projects','skills','experience','education','contact'],
   -- Timestamps
   updated_at                  timestamptz default now()
 );
 
 -- Seed: row settings default
-insert into portfolio_system_settings (site_title)
-values ('My Portfolio')
+insert into portfolio_system_settings (
+  site_title, site_description, active_template,
+  section_order, visible_sections, theme
+)
+values (
+  'My Portfolio',
+  'Personal portfolio & blog',
+  'template1',
+  array['hero','projects','skills','experience','education','contact'],
+  array['hero','projects','skills','experience','education','contact'],
+  '{"accent":"#4f46e5","bg":"#0b0b12","fontMono":false,"roundness":"md"}'::jsonb
+)
 on conflict do nothing;
 
 -- =====================================================

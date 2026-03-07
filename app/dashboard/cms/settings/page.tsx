@@ -79,6 +79,7 @@ export default function SettingsPage() {
     setLoading(false);
   }, []);
 
+  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { load(); }, [load]);
 
   const handleChange = (name: string, value: string) => {
