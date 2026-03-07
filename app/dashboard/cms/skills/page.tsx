@@ -186,7 +186,7 @@ export default function SkillsEditor() {
   if (loading) return <div className="p-8 text-sm text-[#52525b]">Memuat...</div>;
 
   return (
-    <div className="p-8 max-w-2xl">
+    <div className="p-8 w-full">
       <div className="mb-6">
         <h2 className="text-lg font-bold text-[#fafafa]">Skills</h2>
         <p className="text-xs text-[#52525b] mt-1">

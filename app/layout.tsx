@@ -19,34 +19,27 @@ const firaCode = Fira_Code({
 
 export async function generateMetadata(): Promise<Metadata> {
   try {
-    const supabase = await createClient();
-    const { data: settings } = await supabase
-      .from("portfolio_system_settings")
-      .select("site_title, site_description, site_url, og_image")
-      .limit(1)
-      .single();
-
-    const title = settings?.site_title || "M. Revan Apriyandi — Software Engineer";
-    const description = settings?.site_description || "Portfolio of M. Revan Apriyandi, a Software Engineer building modern web apps.";
-    const url = settings?.site_url || "https://revanapriyandi.vercel.app";
-    const ogImage = settings?.og_image || undefined;
+    const { siteTitle, siteDescription, siteUrl, defaultOgImage } = await getSeoContext();
 
     return {
-      title,
-      description,
-      metadataBase: new URL(url),
+      title: {
+        default: siteTitle,
+        template: `%s | ${siteTitle}`,
+      },
+      description: siteDescription,
+      metadataBase: new URL(siteUrl),
       openGraph: {
-        title,
-        description,
+        title: siteTitle,
+        description: siteDescription,
+        url: siteUrl,
         type: "website",
-        url,
-        ...(ogImage ? { images: [ogImage] } : {}),
+        images: defaultOgImage ? [{ url: defaultOgImage }] : undefined,
       },
       twitter: {
-        card: "summary_large_image",
-        title,
-        description,
-        ...(ogImage ? { images: [ogImage] } : {}),
+        card: defaultOgImage ? "summary_large_image" : "summary",
+        title: siteTitle,
+        description: siteDescription,
+        images: defaultOgImage ? [defaultOgImage] : undefined,
       },
     };
   } catch {
@@ -69,29 +62,6 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   }
 
   const radiusMap: Record<string, string> = { none: "0px", sm: "0.25rem", md: "0.5rem", lg: "1rem", full: "9999px" };
-  const { siteTitle, siteDescription, siteUrl, defaultOgImage } = await getSeoContext();
-
-  return {
-    title: {
-      default: siteTitle,
-      template: `%s | ${siteTitle}`,
-    },
-    description: siteDescription,
-    metadataBase: new URL(siteUrl),
-    openGraph: {
-      title: siteTitle,
-      description: siteDescription,
-      url: siteUrl,
-      type: "website",
-      images: defaultOgImage ? [{ url: defaultOgImage }] : undefined,
-    },
-    twitter: {
-      card: defaultOgImage ? "summary_large_image" : "summary",
-      title: siteTitle,
-      description: siteDescription,
-      images: defaultOgImage ? [defaultOgImage] : undefined,
-    },
-  };
 
   return (
     <html lang="en" className="dark scroll-smooth">

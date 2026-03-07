@@ -103,7 +103,7 @@ export default function AppearanceEditor() {
   if (loading) return <div className="p-8 text-sm text-[#4a4a6a]">Memuat...</div>;
 
   return (
-    <div className="p-8 max-w-4xl space-y-10">
+    <div className="p-8 w-full space-y-10">
       <div className="flex items-center justify-between">
         <div><h1 className="text-xl font-bold text-[#e2e2ef]">Appearance</h1><p className="text-xs text-[#6a6a8a] mt-1">Ubah tampilan, warna, dan urutan seksi portofoliomu.</p></div>
         <div className="flex items-center gap-4">

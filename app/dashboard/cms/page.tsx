@@ -101,7 +101,7 @@ export default function DashboardOverview() {
   );
 
   return (
-    <div className="p-6 max-w-6xl space-y-8">
+    <div className="p-6 w-full space-y-8">
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-[#e2e2ef]">Dashboard Overview</h1>

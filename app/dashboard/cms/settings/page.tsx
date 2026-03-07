@@ -107,7 +107,7 @@ export default function SettingsPage() {
   );
 
   return (
-    <div className="p-6 max-w-3xl space-y-6">
+    <div className="p-6 w-full space-y-6">
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-lg font-bold text-[#e2e2ef] flex items-center gap-2"><Settings2 className="w-5 h-5 text-indigo-400" />System Settings</h1>

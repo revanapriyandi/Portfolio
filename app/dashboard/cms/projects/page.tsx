@@ -11,6 +11,7 @@ import {
   Github,
   FolderKanban,
 } from "lucide-react";
+import { ImageUpload } from "@/components/image-upload";
 
 interface Project {
   id: string;
@@ -139,7 +140,7 @@ export default function ProjectsEditor() {
     );
 
   return (
-    <div className="p-6 max-w-4xl space-y-6">
+    <div className="p-6 w-full space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-lg font-bold text-[#e2e2ef] flex items-center gap-2">
@@ -261,15 +262,12 @@ export default function ProjectsEditor() {
                   className="w-full bg-[#12121c] border border-[#1e1e2e] rounded-lg px-3 py-2 text-sm text-[#e2e2ef] placeholder-[#3a3a5a] focus:outline-none focus:border-indigo-500"
                 />
               </div>
-              <div className="space-y-1.5">
-                <label className="text-xs font-medium text-[#c2c2df]">
-                  Image URL / OG Preview
-                </label>
-                <input
-                  value={p.image_url ?? ""}
-                  onChange={(e) => update(p.id, "image_url", e.target.value)}
-                  placeholder="https://..."
-                  className="w-full bg-[#12121c] border border-[#1e1e2e] rounded-lg px-3 py-2 text-sm text-[#e2e2ef] placeholder-[#3a3a5a] focus:outline-none focus:border-indigo-500"
+              <div className="space-y-1.5 md:col-span-3">
+                <label className="text-xs font-medium text-[#c2c2df]">Image / OG Preview</label>
+                <ImageUpload 
+                  value={p.image_url ?? ""} 
+                  onChange={url => update(p.id, "image_url", url)} 
+                  folder="projects"
                 />
               </div>
             </div>

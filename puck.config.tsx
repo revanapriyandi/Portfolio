@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import type { ProjectData, SkillCategory, PersonalInfo, ExperienceData, EducationData } from "@/src/types/portfolio";
 import type { Config } from "@measured/puck";
-import { ExternalLink, GraduationCap, Github, Linkedin, Twitter, Instagram, Youtube, Mail, Phone, MapPin, Star, ArrowRight } from "lucide-react";
+import { ExternalLink, GraduationCap, Github, Linkedin, Twitter, Instagram, Youtube, Mail, Phone, MapPin, Star, ArrowRight, Loader2, CheckCircle2 } from "lucide-react";
 
 /* ─── Root Props ────────────────────────────────────── */
 export type CustomRootProps = {
@@ -32,6 +32,7 @@ export type UserConfig = {
   Testimonials: { title: string; limit: number; layout: "grid" | "carousel" };
   Services: { title: string; columns: "2" | "3" };
   ContactSection: { title: string; showEmail: boolean; showPhone: boolean; showLocation: boolean; showSocial: boolean };
+  ContactForm: { title: string; subtitle: string; buttonText: string; successMessage: string };
 };
 
 /* ─── Helpers ───────────────────────────────────────── */
@@ -97,7 +98,7 @@ export const config: Config<UserConfig, CustomRootProps> = {
     typography: { components: ["Heading", "Text"] },
     media:      { components: ["VideoEmbed", "CustomHTML"] },
     portfolio:  { components: ["Hero", "ProjectsGrid", "SkillsDisplay", "ExperienceTimeline", "EducationList"] },
-    engagement: { components: ["CallToAction", "SocialLinks", "StatsCounter", "Testimonials", "Services", "ContactSection", "FastWorkCTA"] },
+    engagement: { components: ["CallToAction", "SocialLinks", "StatsCounter", "Testimonials", "Services", "ContactSection", "ContactForm", "FastWorkCTA"] },
   },
 
   components: {
@@ -536,6 +537,104 @@ export const config: Config<UserConfig, CustomRootProps> = {
                   })}
                 </div>
               )}
+            </div>
+          </SectionWrapper>
+        );
+      },
+    },
+
+    /* ─── CONTACT FORM ──────────────────────────────── */
+    ContactForm: {
+      fields: {
+        title: { type: "text", label: "Judul" },
+        subtitle: { type: "text", label: "Sub Judul" },
+        buttonText: { type: "text", label: "Teks Tombol" },
+        successMessage: { type: "text", label: "Pesan Sukses" },
+      },
+      defaultProps: {
+        title: "Send a Message",
+        subtitle: "I'll try to get back to you as soon as possible.",
+        buttonText: "Send Message",
+        successMessage: "Your message has been sent successfully!",
+      },
+      render: ({ title, subtitle, buttonText, successMessage }) => {
+        // eslint-disable-next-line react-hooks/rules-of-hooks
+        const [form, setForm] = useState({ name: "", email: "", subject: "", message: "" });
+        // eslint-disable-next-line react-hooks/rules-of-hooks
+        const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+
+        const handleSubmit = async (e: React.FormEvent) => {
+          e.preventDefault();
+          setStatus("loading");
+          try {
+            const res = await fetch("/api/contact", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(form),
+            });
+            if (!res.ok) throw new Error("Failed");
+            setStatus("success");
+            setForm({ name: "", email: "", subject: "", message: "" });
+            setTimeout(() => setStatus("idle"), 5000);
+          } catch (err) {
+            console.error(err);
+            setStatus("error");
+          }
+        };
+
+        const InputStyle = "w-full bg-[#12121c] border border-[#1e1e2e] focus:border-[var(--app-accent)] rounded-lg px-4 py-3 text-sm text-[#e2e2ef] placeholder-[#4a4a6a] outline-none transition-all";
+
+        return (
+          <SectionWrapper>
+            <div className="py-16 px-6 max-w-2xl mx-auto">
+              {title && <h2 className="text-3xl font-black text-white mb-2 text-center">{title}</h2>}
+              {subtitle && <p className="text-[#6a6a8a] text-center mb-10 text-sm">{subtitle}</p>}
+              
+              <div className="bg-[#0d0d14] border border-[#1e1e2e] rounded-2xl p-6 md:p-8 relative overflow-hidden">
+                {status === "success" ? (
+                  <div className="text-center py-10 animate-in fade-in zoom-in duration-300">
+                    <div className="w-16 h-16 bg-emerald-500/10 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <CheckCircle2 className="w-8 h-8" />
+                    </div>
+                    <h3 className="text-xl font-bold text-white mb-2">Message Sent!</h3>
+                    <p className="text-[#a1a1aa] text-sm">{successMessage}</p>
+                    <button onClick={() => setStatus("idle")} className="mt-8 text-sm text-[var(--app-accent)] hover:underline font-medium">Send another message</button>
+                  </div>
+                ) : (
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div>
+                        <label className="sr-only">Name</label>
+                        <input required type="text" placeholder="Your Name" value={form.name} onChange={e => setForm(f => ({...f, name: e.target.value}))} className={InputStyle} disabled={status === "loading"} />
+                      </div>
+                      <div>
+                        <label className="sr-only">Email</label>
+                        <input required type="email" placeholder="Email Address" value={form.email} onChange={e => setForm(f => ({...f, email: e.target.value}))} className={InputStyle} disabled={status === "loading"} />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="sr-only">Subject</label>
+                      <input type="text" placeholder="Subject (Optional)" value={form.subject} onChange={e => setForm(f => ({...f, subject: e.target.value}))} className={InputStyle} disabled={status === "loading"} />
+                    </div>
+                    <div>
+                      <label className="sr-only">Message</label>
+                      <textarea required rows={5} placeholder="Your Message" value={form.message} onChange={e => setForm(f => ({...f, message: e.target.value}))} className={`${InputStyle} resize-none`} disabled={status === "loading"} />
+                    </div>
+                    
+                    {status === "error" && (
+                      <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-red-500 text-sm text-center">
+                        Failed to send message. Please try again.
+                      </div>
+                    )}
+                    
+                    <button type="submit" disabled={status === "loading"}
+                      className="w-full py-3.5 rounded-lg border-2 text-white font-bold transition-all flex items-center justify-center gap-2 hover:-translate-y-0.5"
+                      style={{ background: "var(--app-accent)", borderColor: "var(--app-accent)", opacity: status === "loading" ? 0.7 : 1 }}>
+                      {status === "loading" ? <Loader2 className="w-5 h-5 animate-spin" /> : buttonText}
+                    </button>
+                  </form>
+                )}
+              </div>
             </div>
           </SectionWrapper>
         );

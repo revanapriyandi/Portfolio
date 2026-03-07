@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import {
   LayoutDashboard, User, FolderKanban, Wrench, Briefcase,
   GraduationCap, LogOut, ExternalLink, ChevronRight, Github, Palette,
-  Globe, Settings, Layers, MessageSquare, Star, Menu, X
+  Globe, Settings, Layers, MessageSquare, Star, Menu, X, Mail
 } from "lucide-react";
 
 const mainNav = [
@@ -15,6 +15,7 @@ const mainNav = [
   { href: "/dashboard/cms/pages", label: "Halaman", icon: Globe },
   { href: "/dashboard/cms/builder", label: "Page Builder", icon: Palette },
   { href: "/dashboard/cms/templates", label: "Templates", icon: Layers },
+  { href: "/dashboard/cms/inbox", label: "Inbox", icon: Mail },
 ];
 
 const contentNav = [
@@ -144,7 +145,7 @@ export default function CMSLayout({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-[#0a0a0f] flex text-sm">
       {/* Desktop sidebar */}
       <div className="hidden lg:flex flex-col h-screen sticky top-0">
-        <Sidebar />
+        {Sidebar()}
       </div>
 
       {/* Mobile sidebar overlay */}
@@ -152,7 +153,7 @@ export default function CMSLayout({ children }: { children: React.ReactNode }) {
         <div className="lg:hidden fixed inset-0 z-50 flex">
           <div className="absolute inset-0 bg-black/60" onClick={() => setSidebarOpen(false)} />
           <div className="relative flex flex-col h-full">
-            <Sidebar />
+            {Sidebar()}
           </div>
         </div>
       )}

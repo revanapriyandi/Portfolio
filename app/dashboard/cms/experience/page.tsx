@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Plus, Trash2, Save, Loader2, Briefcase, Building2, Globe, FileCode2 } from "lucide-react";
+import { ImageUpload } from "@/components/image-upload";
 
 interface Exp { 
   id: string; 
@@ -75,7 +76,7 @@ export default function ExperienceEditor() {
   if (loading) return <div className="flex items-center justify-center h-64"><Loader2 className="w-5 h-5 text-indigo-400 animate-spin" /></div>;
 
   return (
-    <div className="p-6 max-w-4xl space-y-6">
+    <div className="p-6 w-full space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-lg font-bold text-[#e2e2ef] flex items-center gap-2"><Briefcase className="w-5 h-5 text-indigo-400" />Experience</h1>
@@ -138,8 +139,11 @@ export default function ExperienceEditor() {
               </div>
               <div className="space-y-1.5">
                 <label className="text-xs font-medium text-[#c2c2df]">Logo URL</label>
-                <input value={item.logo_url ?? ""} onChange={e => update(item.id, "logo_url", e.target.value)} placeholder="https://..."
-                  className="w-full bg-[#12121c] border border-[#1e1e2e] rounded-lg px-3 py-2 text-sm text-[#e2e2ef] focus:outline-none focus:border-indigo-500" />
+                <ImageUpload 
+                  value={item.logo_url ?? ""} 
+                  onChange={url => update(item.id, "logo_url", url)} 
+                  folder="logos" 
+                />
               </div>
             </div>
 

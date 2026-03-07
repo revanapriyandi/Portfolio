@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Plus, Trash2, Save, Loader2, GraduationCap, Award } from "lucide-react";
+import { ImageUpload } from "@/components/image-upload";
 
 interface Edu { 
   id: string; 
@@ -84,7 +85,7 @@ export default function EducationEditor() {
   );
 
   return (
-    <div className="p-6 max-w-4xl space-y-10">
+    <div className="p-6 w-full space-y-10">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-lg font-bold text-[#e2e2ef] flex items-center gap-2"><GraduationCap className="w-5 h-5 text-indigo-400" />Education</h1>
@@ -109,7 +110,14 @@ export default function EducationEditor() {
               <div className="lg:col-span-2">
                 <Input label="Institusi / Universitas" value={item.institution ?? ""} onChange={v => setEdus(i => i.map(x => x.id === item.id ? { ...x, institution: v } : x))} placeholder="Universitas Indonesia" />
               </div>
-              <Input label="Logo URL" value={item.logo_url ?? ""} onChange={v => setEdus(i => i.map(x => x.id === item.id ? { ...x, logo_url: v } : x))} placeholder="https://..." />
+              <div className="space-y-1.5 md:col-span-2">
+                <label className="text-xs font-medium text-[#c2c2df]">Logo URL</label>
+                <ImageUpload 
+                  value={item.logo_url ?? ""} 
+                  onChange={v => setEdus(i => i.map(x => x.id === item.id ? { ...x, logo_url: v } : x))} 
+                  folder="logos" 
+                />
+              </div>
               
               <Input label="Tingkat / Gelar" value={item.degree ?? ""} onChange={v => setEdus(i => i.map(x => x.id === item.id ? { ...x, degree: v } : x))} placeholder="Sarjana (S1)" />
               <Input label="Program Studi / Jurusan" value={item.field_of_study ?? ""} onChange={v => setEdus(i => i.map(x => x.id === item.id ? { ...x, field_of_study: v } : x))} placeholder="Ilmu Komputer" />

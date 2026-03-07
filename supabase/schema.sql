@@ -325,3 +325,20 @@ create policy "auth update images" on storage.objects
 -- Authenticated delete
 create policy "auth delete images" on storage.objects
   for delete using (bucket_id = 'portfolio' and auth.role() = 'authenticated');
+
+-- =====================================================
+-- 12. MESSAGES (Contact Inbox)
+-- =====================================================
+create table portfolio_messages (
+  id         uuid primary key default gen_random_uuid(),
+  name       text not null,
+  email      text not null,
+  subject    text,
+  message    text not null,
+  is_read    boolean default false,
+  created_at timestamptz default now()
+);
+
+alter table portfolio_messages enable row level security;
+create policy "Enable insert for public" on portfolio_messages for insert to public with check (true);
+create policy "Enable all for users based on user_id" on portfolio_messages for all using (auth.role() = 'authenticated');

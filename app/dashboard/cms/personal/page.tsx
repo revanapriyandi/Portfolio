@@ -1,8 +1,9 @@
 "use client";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { Upload, Save, Loader2, User, Globe, Link2, Briefcase } from "lucide-react";
+import { Save, Loader2, User, Globe, Link2, Briefcase } from "lucide-react";
 import Image from "next/image";
+import { ImageUpload } from "@/components/image-upload";
 
 type PersonalData = Record<string, string | number | boolean | string[]>;
 
@@ -38,10 +39,8 @@ export default function PersonalEditor() {
   const [data, setData] = useState<PersonalData>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [uploading, setUploading] = useState(false);
   const [toast, setToast] = useState({ msg: "", ok: true });
   const [tab, setTab] = useState<Tab>("basic");
-  const fileRef = useRef<HTMLInputElement>(null);
 
   const load = async () => {
     const { data: d } = await supabase.from("portfolio_personal").select("*").limit(1).single();
@@ -71,19 +70,7 @@ export default function PersonalEditor() {
     void created_at; void updated_at;
   }
 
-  async function handleAvatarUpload(e: React.ChangeEvent<HTMLInputElement>) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setUploading(true);
-    const ext = file.name.split(".").pop();
-    const path = `avatars/profile-${Date.now()}.${ext}`;
-    const { error } = await supabase.storage.from("portfolio").upload(path, file, { upsert: true });
-    if (!error) {
-      const { data: { publicUrl } } = supabase.storage.from("portfolio").getPublicUrl(path);
-      set("avatar", publicUrl);
-    }
-    setUploading(false);
-  }
+
 
   if (loading) return <div className="flex items-center justify-center h-64"><Loader2 className="w-5 h-5 text-indigo-400 animate-spin" /></div>;
 
@@ -92,7 +79,7 @@ export default function PersonalEditor() {
   const bool = (k: string) => (data[k] as boolean) ?? false;
 
   return (
-    <div className="p-6 max-w-3xl space-y-6">
+    <div className="p-6 w-full space-y-6">
       <div className="flex items-start justify-between">
         <div>
           <h1 className="text-lg font-bold text-[#e2e2ef] flex items-center gap-2"><User className="w-5 h-5 text-indigo-400" />Info Pribadi</h1>
@@ -106,21 +93,20 @@ export default function PersonalEditor() {
       </div>
 
       {/* Avatar */}
-      <div className="bg-[#0d0d14] border border-[#1e1e2e] rounded-xl p-5 flex items-center gap-5">
-        <div className="w-20 h-20 rounded-full overflow-hidden ring-2 ring-indigo-600/30 shrink-0 bg-[#1a1a2e] flex items-center justify-center">
-          {val("avatar")
-            ? <Image src={val("avatar")} alt="avatar" width={80} height={80} className="object-cover w-full h-full" />
-            : <User className="w-8 h-8 text-[#3a3a5a]" />}
+      <div className="bg-[#0d0d14] border border-[#1e1e2e] rounded-xl p-5 grid grid-cols-1 md:grid-cols-2 gap-5 items-center">
+        <div className="flex items-center gap-5">
+          <div className="w-20 h-20 rounded-full overflow-hidden ring-2 ring-indigo-600/30 shrink-0 bg-[#1a1a2e] flex items-center justify-center">
+            {val("avatar")
+              ? <Image src={val("avatar")} alt="avatar" width={80} height={80} className="object-cover w-full h-full" />
+              : <User className="w-8 h-8 text-[#3a3a5a]" />}
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-[#e2e2ef] mb-1">{val("name") || "Nama belum diisi"}</p>
+            <p className="text-xs text-[#4a4a6a]">{val("role") || "Role belum diisi"}</p>
+          </div>
         </div>
-        <div>
-          <p className="text-sm font-semibold text-[#e2e2ef] mb-1">{val("name") || "Nama belum diisi"}</p>
-          <p className="text-xs text-[#4a4a6a] mb-3">{val("role") || "Role belum diisi"}</p>
-          <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
-          <button onClick={() => fileRef.current?.click()} disabled={uploading}
-            className="flex items-center gap-2 border border-[#2a2a3a] hover:border-indigo-500 text-[#6a6a8a] hover:text-[#c2c2df] text-xs px-3 py-1.5 rounded-lg transition-all">
-            {uploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
-            {uploading ? "Uploading..." : "Ganti Foto"}
-          </button>
+        <div className="w-full">
+          <ImageUpload value={val("avatar")} onChange={url => set("avatar", url)} folder="avatars" />
         </div>
       </div>
 

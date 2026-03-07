@@ -95,7 +95,7 @@ export default function PagesManagerPage() {
   );
 
   return (
-    <div className="p-6 max-w-5xl space-y-6">
+    <div className="p-6 w-full space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-lg font-bold text-[#e2e2ef] flex items-center gap-2"><Globe className="w-5 h-5 text-indigo-400" />Manajemen Halaman</h1>
