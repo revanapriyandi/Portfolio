@@ -52,32 +52,39 @@ export default function HeroSection({ personal, textPrimary, textSecondary }: {
 
               <motion.h1 variants={staggerContainer} initial="hidden" animate="show" className="text-5xl md:text-7xl font-extrabold tracking-tight leading-[1.1] mb-6 flex flex-col" style={{ color: textPrimary }}>
                 {devRole.split(' ').map((word, i) => (
-                  <motion.span variants={staggerLines} key={i} className="block">{word}</motion.span>
+                  <motion.span 
+                    variants={staggerLines} 
+                    key={i} 
+                    className="block bg-clip-text text-transparent bg-gradient-to-r"
+                    style={{ backgroundImage: `linear-gradient(to right, ${textPrimary}, #79c0ff)` }}
+                  >
+                    {word}
+                  </motion.span>
                 ))}
               </motion.h1>
               
-              <motion.p variants={fadeInUp} className="text-lg md:text-xl md:leading-relaxed max-w-xl mb-10 font-medium" style={{ color: textSecondary }}>
+              <motion.p variants={fadeInUp} className="text-lg md:text-xl md:leading-relaxed max-w-xl mb-10 font-medium opacity-90" style={{ color: textSecondary }}>
                 Hi, I&apos;m <span style={{ color: textPrimary }}>{devName}</span>. {devBio}
               </motion.p>
               
               <motion.div variants={fadeInUp} className="flex gap-4 flex-wrap">
                 <motion.a 
-                  whileHover={{ scale: 1.02 }} 
-                  whileTap={{ scale: 0.98 }}
+                  whileHover={{ scale: 1.05, boxShadow: `0 0 20px rgba(121, 192, 255, 0.4)` }} 
+                  whileTap={{ scale: 0.95 }}
                   href="#contact" 
-                  className="px-6 py-3 rounded-md font-semibold flex items-center gap-2 text-sm transition-all group"
+                  className="px-6 py-3 rounded-md font-semibold flex items-center gap-2 text-sm transition-all group relative overflow-hidden"
                   style={{ backgroundColor: textPrimary, color: "#0d1117" }}
                 >
-                  Initialize Project <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                  <span className="relative z-10 flex items-center gap-2">Initialize Project <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" /></span>
                 </motion.a>
                 
                 {githubHref && (
                   <motion.a 
-                      whileHover={{ scale: 1.02 }} 
-                      whileTap={{ scale: 0.98 }}
+                      whileHover={{ scale: 1.05, backgroundColor: 'rgba(255, 255, 255, 0.1)', borderColor: '#8b949e' }} 
+                      whileTap={{ scale: 0.95 }}
                       href={githubHref} target="_blank" rel="noreferrer"
-                      className="px-6 py-3 rounded-md font-semibold flex items-center gap-2 text-sm border transition-colors hover:bg-white/5"
-                      style={{ color: textPrimary, borderColor: '#30363d', backgroundColor: '#21262d' }}
+                      className="px-6 py-3 rounded-md font-semibold flex items-center gap-2 text-sm border transition-all"
+                      style={{ color: textPrimary, borderColor: '#30363d', backgroundColor: 'rgba(33, 38, 45, 0.5)', backdropFilter: 'blur(8px)' }}
                   >
                   <Github className="w-4 h-4 opacity-70" /> Source Code
                   </motion.a>
@@ -85,11 +92,11 @@ export default function HeroSection({ personal, textPrimary, textSecondary }: {
                 
                 {fastworkHref && (
                   <motion.a 
-                      whileHover={{ scale: 1.02 }} 
-                      whileTap={{ scale: 0.98 }}
+                      whileHover={{ scale: 1.05, backgroundColor: 'rgba(255, 255, 255, 0.1)', borderColor: '#8b949e' }} 
+                      whileTap={{ scale: 0.95 }}
                       href={fastworkHref} target="_blank" rel="noreferrer"
-                      className="px-6 py-3 rounded-md font-semibold flex items-center gap-2 text-sm border transition-colors hover:bg-white/5"
-                      style={{ color: textPrimary, borderColor: '#30363d', backgroundColor: 'transparent' }}
+                      className="px-6 py-3 rounded-md font-semibold flex items-center gap-2 text-sm border transition-all"
+                      style={{ color: textPrimary, borderColor: '#30363d', backgroundColor: 'transparent', backdropFilter: 'blur(8px)' }}
                   >
                   <Terminal className="w-4 h-4 opacity-70" /> Fastwork
                   </motion.a>
@@ -99,9 +106,13 @@ export default function HeroSection({ personal, textPrimary, textSecondary }: {
 
             {/* Right Column: Code Window */}
             <motion.div variants={fadeInUp} className="order-1 lg:order-2 w-full max-w-[500px] lg:max-w-none mx-auto lg:ml-auto">
-              <div className="rounded-xl overflow-hidden border shadow-2xl" style={{ borderColor: '#30363d', backgroundColor: '#0d1117' }}>
+              <motion.div 
+                whileHover={{ y: -5, boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)' }}
+                className="rounded-xl overflow-hidden border shadow-2xl transition-all duration-300" 
+                style={{ borderColor: 'rgba(48, 54, 61, 0.8)', backgroundColor: 'rgba(13, 17, 23, 0.7)', backdropFilter: 'blur(12px)' }}
+              >
                 {/* Window Header */}
-                <div className="flex items-center px-4 py-3 border-b" style={{ borderColor: '#30363d', backgroundColor: '#161b22' }}>
+                <div className="flex items-center px-4 py-3 border-b" style={{ borderColor: 'rgba(48, 54, 61, 0.8)', backgroundColor: 'rgba(22, 27, 34, 0.8)' }}>
                   <div className="flex gap-2">
                     <div className="w-3 h-3 rounded-full bg-[#ff5f56]"></div>
                     <div className="w-3 h-3 rounded-full bg-[#ffbd2e]"></div>
@@ -172,7 +183,7 @@ export default function HeroSection({ personal, textPrimary, textSecondary }: {
                     <span><span style={{ color: '#ff7b72' }}>export default</span> profile;</span>
                   </motion.div>
                 </motion.div>
-              </div>
+              </motion.div>
             </motion.div>
 
           </motion.div>

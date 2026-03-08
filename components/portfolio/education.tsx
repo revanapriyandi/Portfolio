@@ -34,8 +34,8 @@ export default function EducationSection({ education, textPrimary, textSecondary
   return (
     <section id="education" className="py-24 max-w-6xl mx-auto flex flex-col items-end px-4 sm:px-8 font-mono">
       <motion.div initial="hidden" whileInView="show" viewport={{ once: true, margin: "-100px" }} variants={fadeInUp} className="mb-16 text-right w-full">
-        <h2 className="text-3xl font-bold tracking-tight mb-2 flex flex-row-reverse items-center justify-start gap-3 w-full" style={{ color: textPrimary }}>
-          <BookOpen className="w-8 h-8 opacity-70" />
+        <h2 className="text-3xl font-bold tracking-tight mb-2 flex flex-row-reverse items-center justify-start gap-3 w-full bg-clip-text text-transparent bg-gradient-to-r" style={{ backgroundImage: `linear-gradient(to right, ${textPrimary}, #79c0ff)` }}>
+          <BookOpen className="w-8 h-8 opacity-70" style={{ color: textPrimary }} />
           {t("t1_education_title", "Learning Path")}
         </h2>
         <p className="text-sm opacity-60" style={{ color: textSecondary }}>&gt; curl https://api.education/v1/degrees</p>
@@ -50,9 +50,9 @@ export default function EducationSection({ education, textPrimary, textSecondary
           >
             {/* Git Node */}
             <motion.div 
-               whileHover={{ scale: 1.5, rotate: 90 }}
+               whileHover={{ scale: 1.5, rotate: 90, boxShadow: `0 0 15px ${accent}` }}
                transition={{ type: "spring", stiffness: 300, damping: 10 }}
-               className="absolute right-[-53px] top-1 bg-[#0d1117] p-1 cursor-crosshair"
+               className="absolute right-[-53px] top-1 bg-[#0d1117] p-1 cursor-crosshair rounded-full transition-shadow duration-300"
             >
                 <GraduationCap className="w-5 h-5" style={{ color: accent }} />
             </motion.div>

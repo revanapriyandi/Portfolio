@@ -26,7 +26,7 @@ const ICONS: Record<string, React.ReactNode> = {
   wifi: <Wifi className="w-5 h-5" />,
 };
 
-export default function ServicesSection({ services, textPrimary, textSecondary, accent, cardBg, cardBorder, templateTexts }: {
+export default function ServicesSection({ services, textPrimary, textSecondary, accent, templateTexts }: {
     services: ServiceItem[];
     textPrimary: string;
     textSecondary: string;
@@ -42,8 +42,8 @@ export default function ServicesSection({ services, textPrimary, textSecondary, 
   return (
     <section id="services" className="py-24 max-w-6xl mx-auto px-4 sm:px-8 font-sans">
       <motion.div initial="hidden" whileInView="show" viewport={{ once: true, margin: "-100px" }} variants={fadeInUp} className="mb-16 text-center">
-        <h2 className="text-3xl font-bold tracking-tight mb-2 flex justify-center items-center gap-3 font-mono" style={{ color: textPrimary }}>
-          <Terminal className="w-8 h-8 opacity-70" />
+        <h2 className="text-3xl font-bold tracking-tight mb-2 flex justify-center items-center gap-3 font-mono bg-clip-text text-transparent bg-gradient-to-r" style={{ backgroundImage: `linear-gradient(to right, ${textPrimary}, #79c0ff)` }}>
+          <Terminal className="w-8 h-8 opacity-70" style={{ color: textPrimary }} />
           {t("t1_services_title", "Microservices_")}
         </h2>
         <p className="text-sm opacity-60 font-mono" style={{ color: textSecondary }}>&gt; active background processes & capabilities</p>
@@ -60,14 +60,14 @@ export default function ServicesSection({ services, textPrimary, textSecondary, 
           <motion.div 
             key={idx}
             variants={fadeInUp}
-            whileHover={{ y: -5 }}
-            className="group p-6 rounded-lg transition-all duration-300 relative overflow-hidden"
-            style={{ backgroundColor: cardBg, border: `1px solid ${cardBorder}` }}
+            whileHover={{ y: -5, boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', borderColor: 'rgba(139, 148, 158, 0.6)' }}
+            className="group p-6 rounded-lg transition-all duration-300 relative overflow-hidden backdrop-blur-md"
+            style={{ backgroundColor: 'rgba(22, 27, 34, 0.6)', border: `1px solid rgba(48, 54, 61, 0.7)` }}
           >
-            <div className="absolute top-0 left-0 w-full h-[2px] transition-all duration-500 origin-left scale-x-0 group-hover:scale-x-100" style={{ backgroundColor: accent }} />
+            <div className="absolute top-0 left-0 w-full h-[2px] transition-all duration-500 origin-left scale-x-0 group-hover:scale-x-100" style={{ backgroundColor: accent, boxShadow: `0 0 10px ${accent}` }} />
             
-            <div className="mb-4 inline-flex p-3 rounded-lg" style={{ backgroundColor: '#0d1117', border: `1px solid ${cardBorder}` }}>
-               <span style={{ color: accent }}>
+            <div className="mb-4 inline-flex p-3 rounded-lg shadow-inner" style={{ backgroundColor: 'rgba(13, 17, 23, 0.6)', border: `1px solid rgba(48, 54, 61, 0.7)` }}>
+               <span style={{ color: accent, filter: `drop-shadow(0 0 8px ${accent})` }}>
                    {item.icon && ICONS[item.icon.toLowerCase()] ? ICONS[item.icon.toLowerCase()] : <Code className="w-5 h-5" />}
                </span>
             </div>

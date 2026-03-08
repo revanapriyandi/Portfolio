@@ -34,8 +34,8 @@ export default function ExperienceSection({ experience, textPrimary, textSeconda
   return (
     <section id="experience" className="py-24 max-w-6xl mx-auto px-4 sm:px-8 font-mono">
       <motion.div initial="hidden" whileInView="show" viewport={{ once: true, margin: "-100px" }} variants={fadeInUp} className="mb-16">
-        <h2 className="text-3xl font-bold tracking-tight mb-2 flex items-center gap-3" style={{ color: textPrimary }}>
-          <GitMerge className="w-8 h-8 opacity-70" />
+        <h2 className="text-3xl font-bold tracking-tight mb-2 flex items-center gap-3 bg-clip-text text-transparent bg-gradient-to-r" style={{ backgroundImage: `linear-gradient(to right, ${textPrimary}, #79c0ff)` }}>
+          <GitMerge className="w-8 h-8 opacity-70" style={{ color: textPrimary }} />
           {t("t1_experience_title", "Commit History")}
         </h2>
         <p className="text-sm opacity-60" style={{ color: textSecondary }}>&gt; git log --oneline --graph --decorate</p>
@@ -50,9 +50,9 @@ export default function ExperienceSection({ experience, textPrimary, textSeconda
           >
             {/* Git Node */}
             <motion.div 
-               whileHover={{ scale: 1.5, rotate: 90 }}
+               whileHover={{ scale: 1.5, rotate: 90, boxShadow: `0 0 15px ${accent}` }}
                transition={{ type: "spring", stiffness: 300, damping: 10 }}
-               className="absolute left-[-11px] top-1 bg-[#0d1117] p-1 cursor-crosshair"
+               className="absolute left-[-11px] top-1 bg-[#0d1117] p-1 cursor-crosshair rounded-full transition-shadow duration-300"
             >
                 <GitCommit className="w-4 h-4" style={{ color: accent }} />
             </motion.div>

@@ -75,13 +75,37 @@ export default function Template1({ data, theme }: PortfolioViewProps) {
 
       {/* Subtle Engineering Grid Background */}
       <div 
-        className="fixed inset-0 pointer-events-none opacity-20"
+        className="fixed inset-0 pointer-events-none opacity-[0.15]"
         style={{
           backgroundImage: `linear-gradient(${cardBorder} 1px, transparent 1px), linear-gradient(90deg, ${cardBorder} 1px, transparent 1px)`,
           backgroundSize: '40px 40px',
           backgroundPosition: 'center center'
         }}
       />
+      
+      {/* Dynamic Animated Glowing Orbs (Glassmorphism Light Sources) */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        <motion.div 
+          animate={{ 
+            x: ["-20%", "20%", "-20%"], 
+            y: ["-20%", "20%", "-20%"],
+            scale: [1, 1.2, 1]
+          }} 
+          transition={{ duration: 15, repeat: Infinity, ease: "linear" }}
+          className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] rounded-full opacity-[0.12] blur-[100px]" 
+          style={{ background: `radial-gradient(circle, ${accent} 0%, transparent 70%)` }} 
+        />
+        <motion.div 
+          animate={{ 
+            x: ["20%", "-20%", "20%"], 
+            y: ["20%", "-20%", "20%"],
+            scale: [1, 1.5, 1]
+          }} 
+          transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+          className="absolute bottom-[-10%] right-[-10%] w-[60vw] h-[60vw] rounded-full opacity-[0.08] blur-[120px]" 
+          style={{ background: `radial-gradient(circle, #79c0ff 0%, transparent 80%)` }} 
+        />
+      </div>
 
       {/* Crisp Technical Navbar */}
       <nav
@@ -110,11 +134,11 @@ export default function Template1({ data, theme }: PortfolioViewProps) {
               <a
                 key={nav.id}
                 href={`#${nav.id}`}
-                className="group flex items-center gap-1.5 transition-colors"
+                className="group flex items-center gap-1.5 transition-all hover:-translate-y-0.5"
                 style={{ color: textSecondary }}
               >
                 <span className="opacity-50 group-hover:opacity-100 transition-opacity">[{nav.index}]</span>
-                <span className="group-hover:text-[var(--accent)] transition-colors" style={{ '--accent': accent } as React.CSSProperties}>
+                <span className="group-hover:text-[var(--accent)] group-hover:drop-shadow-[0_0_8px_rgba(var(--accent-rgb),0.5)] transition-all" style={{ '--accent': accent } as React.CSSProperties}>
                   {nav.label}
                 </span>
               </a>
@@ -135,7 +159,6 @@ export default function Template1({ data, theme }: PortfolioViewProps) {
           projects={projects}
           textPrimary={textPrimary}
           textSecondary={textSecondary}
-          accent={accent}
           cardBg={cardBg}
           cardBorder={cardBorder}
           templateTexts={texts}
@@ -180,7 +203,6 @@ export default function Template1({ data, theme }: PortfolioViewProps) {
           textPrimary={textPrimary}
           textSecondary={textSecondary}
           accent={accent}
-          cardBg={cardBg}
           cardBorder={cardBorder}
           templateTexts={texts}
         />
@@ -189,7 +211,6 @@ export default function Template1({ data, theme }: PortfolioViewProps) {
           textPrimary={textPrimary}
           textSecondary={textSecondary}
           accent={accent}
-          bg={bg}
           templateTexts={texts}
         />
       </main>

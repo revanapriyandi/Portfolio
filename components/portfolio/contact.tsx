@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, Variants } from 'framer-motion';
-import { Mail, Github, Linkedin, ExternalLink, Terminal, Command } from 'lucide-react';
+import { Mail, Github, Linkedin, Terminal, Command } from 'lucide-react';
 import { PersonalInfo } from '@/lib/portfolio-types';
 
 const fadeInUp: Variants = {
@@ -16,12 +16,11 @@ const staggerContainer: Variants = {
   }
 };
 
-export default function ContactSection({ personal, textPrimary, textSecondary, accent, templateTexts }: {
+export default function ContactSection({ personal, textPrimary, textSecondary, templateTexts }: {
     personal?: PersonalInfo;
     textPrimary: string;
     textSecondary: string;
     accent: string;
-    bg?: string; // Ignored
     templateTexts?: Record<string, string>;
 }) {
   const githubLink = personal?.github_url || personal?.github;
@@ -45,9 +44,9 @@ export default function ContactSection({ personal, textPrimary, textSecondary, a
                style={{ borderColor: '#30363d', backgroundColor: '#161b22' }}
             >
                 {/* Command Input Area */}
-                <div className="flex items-center px-6 py-5 border-b gap-4" style={{ borderColor: '#30363d', backgroundColor: '#0d1117' }}>
+                <div className="flex items-center px-6 py-5 border-b gap-4" style={{ borderColor: 'rgba(48, 54, 61, 0.8)', backgroundColor: 'rgba(13, 17, 23, 0.8)' }}>
                     <Command className="w-5 h-5 opacity-50" style={{ color: textSecondary }} />
-                    <span className="text-xl md:text-2xl font-sans tracking-tight bg-transparent w-full outline-none" style={{ color: textPrimary }}>
+                    <span className="text-xl md:text-2xl font-sans tracking-tight bg-transparent w-full outline-none bg-clip-text text-transparent bg-gradient-to-r" style={{ backgroundImage: `linear-gradient(to right, ${textPrimary}, #79c0ff)` }}>
                         {t("t1_contact_title", "Connect with me...")}
                     </span>
                     <span className="animate-pulse w-3 h-6 bg-[#58a6ff]"></span>
@@ -61,7 +60,7 @@ export default function ContactSection({ personal, textPrimary, textSecondary, a
 
                     <a 
                         href={personal?.email ? `mailto:${personal.email}` : "#"}
-                        className="group flex items-center justify-between px-4 py-3 rounded-lg transition-colors hover:bg-[#21262d] cursor-pointer"
+                        className="group flex items-center justify-between px-4 py-3 rounded-lg transition-all duration-300 hover:bg-[rgba(255,255,255,0.05)] cursor-pointer"
                         style={{ color: textPrimary }}
                     >
                         <div className="flex items-center gap-3">
@@ -76,7 +75,7 @@ export default function ContactSection({ personal, textPrimary, textSecondary, a
                     {githubHref && (
                     <a 
                         href={githubHref} target="_blank" rel="noreferrer"
-                        className="group flex items-center justify-between px-4 py-3 rounded-lg transition-colors hover:bg-[#21262d] cursor-pointer"
+                        className="group flex items-center justify-between px-4 py-3 rounded-lg transition-all duration-300 hover:bg-[rgba(255,255,255,0.05)] cursor-pointer"
                         style={{ color: textPrimary }}
                     >
                         <div className="flex items-center gap-3">
@@ -92,7 +91,7 @@ export default function ContactSection({ personal, textPrimary, textSecondary, a
                     {linkedinHref && (
                     <a 
                         href={linkedinHref} target="_blank" rel="noreferrer"
-                        className="group flex items-center justify-between px-4 py-3 rounded-lg transition-colors hover:bg-[#21262d] cursor-pointer"
+                        className="group flex items-center justify-between px-4 py-3 rounded-lg transition-all duration-300 hover:bg-[rgba(255,255,255,0.05)] cursor-pointer"
                         style={{ color: textPrimary }}
                     >
                         <div className="flex items-center gap-3">
@@ -108,7 +107,7 @@ export default function ContactSection({ personal, textPrimary, textSecondary, a
                     {fastworkHref && (
                     <a 
                         href={fastworkHref} target="_blank" rel="noreferrer"
-                        className="group flex items-center justify-between px-4 py-3 rounded-lg transition-colors hover:bg-[#21262d] cursor-pointer"
+                        className="group flex items-center justify-between px-4 py-3 rounded-lg transition-all duration-300 hover:bg-[rgba(255,255,255,0.05)] cursor-pointer"
                         style={{ color: textPrimary }}
                     >
                         <div className="flex items-center gap-3">
@@ -124,9 +123,9 @@ export default function ContactSection({ personal, textPrimary, textSecondary, a
                 </div>
                 
                 {/* Status Bar */}
-                <div className="border-t px-6 py-3 flex items-center justify-between text-xs font-mono" style={{ borderColor: '#30363d', backgroundColor: '#0d1117', color: textSecondary }}>
+                <div className="border-t px-6 py-3 flex items-center justify-between text-xs font-mono" style={{ borderColor: 'rgba(48, 54, 61, 0.8)', backgroundColor: 'rgba(13, 17, 23, 0.8)', color: textSecondary }}>
                     <div className="flex items-center gap-4">
-                        <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#238636' }}></span> System Online</span>
+                        <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full shadow-[0_0_8px_#238636]" style={{ backgroundColor: '#238636' }}></span> System Online</span>
                     </div>
                     <div>
                         Ready

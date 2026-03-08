@@ -42,7 +42,7 @@ export default function ExpertiseSection({ skills, textPrimary, textSecondary, a
     <section id="expertise" className="py-24 max-w-6xl mx-auto px-4 sm:px-8">
         <motion.div initial="hidden" whileInView="show" viewport={{ once: true, margin: "-100px" }} variants={fadeInUp} className="mb-12 flex items-end justify-between">
           <div>
-            <h2 className="text-3xl font-bold tracking-tight mb-2 flex items-center gap-3" style={{ color: textPrimary }}>
+            <h2 className="text-3xl font-bold tracking-tight mb-2 flex items-center gap-3 bg-clip-text text-transparent bg-gradient-to-r" style={{ backgroundImage: `linear-gradient(to right, ${textPrimary}, #79c0ff)` }}>
               <Code2 className="w-6 h-6" style={{ color: accent }} />
               {t("t1_expertise_title", "package.json")}
             </h2>
@@ -51,11 +51,12 @@ export default function ExpertiseSection({ skills, textPrimary, textSecondary, a
       
       <motion.div 
         initial="hidden" whileInView="show" viewport={{ once: true, margin: "-50px" }} variants={fadeInUp}
-        className="rounded-lg overflow-hidden border w-full text-sm md:text-base"
-        style={{ borderColor: '#30363d', backgroundColor: '#0d1117' }}
+        whileHover={{ boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)', borderColor: 'rgba(139, 148, 158, 0.6)' }}
+        className="rounded-lg overflow-hidden border w-full text-sm md:text-base relative backdrop-blur-md transition-all duration-300"
+        style={{ borderColor: 'rgba(48, 54, 61, 0.7)', backgroundColor: 'rgba(13, 17, 23, 0.6)' }}
       >
-        <div className="flex border-b text-xs font-mono items-center" style={{ borderColor: '#30363d', backgroundColor: '#161b22' }}>
-          <div className="px-4 py-2 flex items-center gap-2 border-r" style={{ borderColor: '#30363d', color: textPrimary }}>
+        <div className="flex border-b text-xs font-mono items-center" style={{ borderColor: 'rgba(48, 54, 61, 0.7)', backgroundColor: 'rgba(22, 27, 34, 0.6)' }}>
+          <div className="px-4 py-2 flex items-center gap-2 border-r" style={{ borderColor: 'rgba(48, 54, 61, 0.7)', color: textPrimary }}>
             <span style={{ color: '#e34c26' }}>{'{ }'}</span> package.json
           </div>
         </div>
@@ -86,7 +87,7 @@ export default function ExpertiseSection({ skills, textPrimary, textSecondary, a
                  <span style={{ color: '#79c0ff' }}>&quot;devDependencies&quot;</span>: <span style={{ color: '#e3b341' }}>{'{'}</span>
               </motion.div>
               <motion.div variants={staggerLines} className="pl-8 text-xs italic mt-1" style={{ color: textSecondary }}>
-                 /* Click to view more packages */
+                 {`/* Click to view more packages */`}
               </motion.div>
               <motion.div variants={staggerLines} className="pl-4"><span style={{ color: '#e3b341' }}>{'}'}</span></motion.div>
             </>
