@@ -16,12 +16,13 @@ const staggerContainer: Variants = {
   }
 };
 
-export default function ProjectsSection({ projects, textPrimary, textSecondary, accent, templateTexts }: {
+export default function ProjectsSection({ projects, textPrimary, textSecondary, templateTexts }: {
     projects: ProjectItem[];
     textPrimary: string;
     textSecondary: string;
-    cardBg: string; // Ignored for Clean Technical
-    cardBorder: string; // Ignored for Clean Technical
+    accent?: string;
+    cardBg?: string;
+    cardBorder?: string;
     templateTexts?: Record<string, string>;
 }) {
   const [showAll, setShowAll] = useState(false);
