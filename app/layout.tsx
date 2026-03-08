@@ -52,16 +52,19 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   let theme = { accent: "#6366f1", bg: "#000000", fontMono: false, roundness: "md" };
+  let gaMeasurementId: string | null = null;
   
   try {
     const supabase = await createClient();
     const { data } = await supabase
       .from("portfolio_system_settings")
-      .select("theme")
+      .select("theme, ga_measurement_id")
       .order("updated_at", { ascending: false })
       .limit(1)
       .maybeSingle();
     if (data?.theme) theme = { ...theme, ...data.theme };
+    if (data?.ga_measurement_id) gaMeasurementId = data.ga_measurement_id;
+    if (data?.ga_measurement_id) gaMeasurementId = data.ga_measurement_id;
   } catch {
     // defaults
   }
@@ -70,6 +73,26 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
 
   return (
     <html lang="en" className="dark scroll-smooth">
+      {gaMeasurementId && (
+        <head>
+          <script
+            async
+            src={`https://www.googletagmanager.com/gtag/js?id=${gaMeasurementId}`}
+          />
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', '${gaMeasurementId}', {
+                  page_path: window.location.pathname,
+                });
+              `,
+            }}
+          />
+        </head>
+      )}
       <body 
         className={`${inter.variable} ${firaCode.variable} ${theme.fontMono ? 'font-mono' : 'font-sans'} antialiased`}
         style={{

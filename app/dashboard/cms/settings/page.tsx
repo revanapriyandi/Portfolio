@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
-import { Save, Settings2, Github, BarChart3, Globe, Palette, RefreshCw, ExternalLink, Bot, CheckCircle, ChevronsUpDown, Search } from "lucide-react";
+import { Save, Settings2, Github, BarChart3, Globe, Palette, RefreshCw, ExternalLink, Bot, CheckCircle, ChevronsUpDown, Search, Plus, Trash2 } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 
@@ -103,6 +103,11 @@ const TEMPLATE_TEXT_FIELDS: Record<TemplateId, TemplateTextField[]> = {
     { key: "t1_experience_present", label: "Experience Present Label", placeholder: "Present" },
     { key: "t1_experience_show_more", label: "Experience Show More", placeholder: "Show More" },
     { key: "t1_experience_show_less", label: "Experience Show Less", placeholder: "Show Less" },
+    { key: "t1_education_title", label: "Education Title", placeholder: "Education." },
+    { key: "t1_education_show_more", label: "Education Show More", placeholder: "Show More" },
+    { key: "t1_education_show_less", label: "Education Show Less", placeholder: "Show Less" },
+    { key: "t1_services_title", label: "Services Title", placeholder: "Services." },
+    { key: "t1_testimonials_title", label: "Testimonials Title", placeholder: "Testimonials." },
     { key: "t1_contact_title_line1", label: "Contact Title Line 1", placeholder: "Let's talk" },
     { key: "t1_contact_title_line2", label: "Contact Title Line 2", placeholder: "future." },
     { key: "t1_contact_cta", label: "Contact CTA", placeholder: "Get In Touch" },
@@ -131,6 +136,14 @@ const TEMPLATE_TEXT_FIELDS: Record<TemplateId, TemplateTextField[]> = {
     { key: "t2_experience_present", label: "Experience Present Label", placeholder: "Present" },
     { key: "t2_experience_show_more", label: "Experience Show More", placeholder: "Show More" },
     { key: "t2_experience_show_less", label: "Experience Show Less", placeholder: "Show Less" },
+    { key: "t2_education_title", label: "Education Title", placeholder: "Education." },
+    { key: "t2_education_present", label: "Education Present Label", placeholder: "Present" },
+    { key: "t2_education_show_more", label: "Education Show More", placeholder: "Show More" },
+    { key: "t2_education_show_less", label: "Education Show Less", placeholder: "Show Less" },
+    { key: "t2_services_title", label: "Services Title", placeholder: "Services." },
+    { key: "t2_testimonials_title", label: "Testimonials Title", placeholder: "Testimonials." },
+    { key: "t2_testimonials_show_more", label: "Testimonials Show More", placeholder: "Show More" },
+    { key: "t2_testimonials_show_less", label: "Testimonials Show Less", placeholder: "Show Less" },
     { key: "t2_contact_title", label: "Contact Title", placeholder: "Let's talk." },
     { key: "t2_contact_desc", label: "Contact Description", placeholder: "I'm currently available for freelance projects and full-time opportunities." },
     { key: "t2_contact_email_label", label: "Contact Email Label", placeholder: "Email" },
@@ -142,6 +155,7 @@ const TEMPLATE_TEXT_FIELDS: Record<TemplateId, TemplateTextField[]> = {
 export default function SettingsPage() {
   const [settings, setSettings] = useState<SystemSettings>({});
   const [templateTexts, setTemplateTexts] = useState<Record<string, string>>({});
+  const [githubAccounts, setGithubAccounts] = useState<{username: string, token: string}[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState(false);
@@ -158,11 +172,19 @@ export default function SettingsPage() {
       const data: SystemSettings = await res.json();
       setSettings(data);
       setTemplateTexts(data.theme?.templateTexts ?? {});
+      try {
+        if (data.github_token && data.github_token.startsWith('[')) {
+          setGithubAccounts(JSON.parse(data.github_token));
+        } else if (data.github_username || data.github_token) {
+          setGithubAccounts([{ username: data.github_username || "", token: data.github_token || "" }]);
+        }
+      } catch {
+        setGithubAccounts([{ username: data.github_username || "", token: data.github_token || "" }]);
+      }
     }
     setLoading(false);
   }, []);
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { load(); }, [load]);
 
   const handleChange = (name: string, value: string) => {
@@ -217,6 +239,8 @@ export default function SettingsPage() {
 
     const payload: SystemSettings = {
       ...settings,
+      github_username: githubAccounts[0]?.username || "",
+      github_token: JSON.stringify(githubAccounts.filter(a => a.username || a.token)),
       theme: {
         ...(settings.theme ?? { accent: "#6366f1", bg: "#000000", fontMono: false, roundness: "md" }),
         templateTexts: cleanedTemplateTexts,
@@ -279,16 +303,48 @@ export default function SettingsPage() {
         )}
 
         {tab === "github" && (
-          <>
-            <h2 className="text-sm font-semibold text-[#e2e2ef] mb-4">Integrasi GitHub</h2>
-            <InputField label="GitHub Username" name="github_username" value={settings.github_username ?? ""} onChange={handleChange} placeholder="revanapriyandi" />
-            <InputField label="GitHub Token" name="github_token" value={settings.github_token ?? ""} onChange={handleChange} type="password"
-              placeholder="ghp_xxxxxxxxxxxx" hint="Personal Access Token untuk meningkatkan rate limit API dari 60 → 5000 req/jam" />
-            <div className="bg-[#12121c] border border-[#1e1e2e] rounded-lg p-4 text-xs text-[#6a6a8a]">
-              Buat token di: <a href="https://github.com/settings/tokens" target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:underline">github.com/settings/tokens</a>
-              <br />Scope yang dibutuhkan: <span className="text-[#c2c2df]">public_repo</span>
+          <div className="space-y-5">
+            <div>
+              <h2 className="text-sm font-semibold text-[#e2e2ef] mb-1">Integrasi GitHub</h2>
+              <p className="text-xs text-[#4a4a6a]">Tambahkan satu atau lebih akun GitHub untuk mengimpor portofolio proyek secara bersamaan.</p>
             </div>
-          </>
+            
+            <div className="space-y-4">
+              {githubAccounts.map((acc, i) => (
+                <div key={i} className="flex gap-3 items-start bg-[#12121c] p-4 rounded-xl border border-[#1e1e2e]">
+                  <div className="flex-1 space-y-4">
+                    <InputField label="GitHub Username" name={`username-${i}`} value={acc.username} onChange={(_, v) => {
+                      const newAcc = [...githubAccounts];
+                      newAcc[i].username = v;
+                      setGithubAccounts(newAcc);
+                    }} placeholder="revanapriyandi" />
+                    <InputField label="GitHub Token" name={`token-${i}`} value={acc.token} onChange={(_, v) => {
+                      const newAcc = [...githubAccounts];
+                      newAcc[i].token = v;
+                      setGithubAccounts(newAcc);
+                    }} type="password" placeholder="ghp_xxxxxxxxxxxx" hint={i === 0 ? "Personal Access Token untuk meningkatkan rate limit API" : undefined} />
+                  </div>
+                  <button onClick={() => setGithubAccounts(githubAccounts.filter((_, idx) => idx !== i))} className="p-2 mt-6 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors border border-transparent hover:border-red-400/20" title="Hapus Akun">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+              
+              <button 
+                onClick={() => setGithubAccounts([...githubAccounts, { username: "", token: "" }])}
+                className="flex items-center gap-2 text-xs font-semibold text-indigo-400 hover:bg-indigo-400/10 hover:text-indigo-300 px-4 py-2.5 rounded-xl border border-indigo-400/30 w-full justify-center transition-colors"
+              >
+                <Plus className="w-4 h-4" /> Tambah Akun GitHub
+              </button>
+            </div>
+
+            <div className="bg-[#12121c] border border-[#1e1e2e] rounded-xl p-5 text-xs text-[#8a8aaa] mt-6 leading-relaxed">
+              <strong className="text-[#c2c2df] block mb-2">Cara membuat token:</strong>
+              1. Buka <a href="https://github.com/settings/tokens" target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:text-indigo-300 hover:underline">github.com/settings/tokens</a><br/>
+              2. Generate new token (classic)<br/>
+              3. Centang scope: <span className="text-[#c2c2df] bg-[#1e1e2e] px-1.5 py-0.5 rounded ml-1 font-mono text-[10px]">public_repo</span>
+            </div>
+          </div>
         )}
 
         {tab === "analytics" && (

@@ -12,21 +12,32 @@ interface Template2Props {
 }
 
 export default function Template2({ data, theme }: Template2Props) {
-  const { personal, projects = [], skills = [], experience = [] } = data;
+  const { personal, projects = [], skills = [], experience = [], education = [], services = [], testimonials = [] } = data;
   const texts = theme.templateTexts ?? {};
   const t = (key: string, fallback: string) => texts[key] || fallback;
   const initialProjects = 4;
   const initialExperience = 4;
   const initialSkills = 8;
+  const initialEducation = 3;
+  const initialTestimonials = 4;
+  
   const [showAllProjects, setShowAllProjects] = useState(false);
   const [showAllExperience, setShowAllExperience] = useState(false);
   const [showAllSkills, setShowAllSkills] = useState(false);
+  const [showAllEducation, setShowAllEducation] = useState(false);
+  const [showAllTestimonials, setShowAllTestimonials] = useState(false);
+  
   const displayProjects = showAllProjects ? projects : projects.slice(0, initialProjects);
   const hiddenProjects = Math.max(0, projects.length - initialProjects);
   const displayExperience = showAllExperience ? experience : experience.slice(0, initialExperience);
   const hiddenExperience = Math.max(0, experience.length - initialExperience);
   const displaySkills = showAllSkills ? skills : skills.slice(0, initialSkills);
   const hiddenSkills = Math.max(0, skills.length - initialSkills);
+  const displayEducation = showAllEducation ? education : education.slice(0, initialEducation);
+  const hiddenEducation = Math.max(0, education.length - initialEducation);
+  const displayTestimonials = showAllTestimonials ? testimonials : testimonials.slice(0, initialTestimonials);
+  const hiddenTestimonials = Math.max(0, testimonials.length - initialTestimonials);
+  
   const truncate = (value?: string, max = 190) => {
     if (!value) return "";
     return value.length > max ? `${value.slice(0, max).trim()}...` : value;
@@ -62,6 +73,7 @@ export default function Template2({ data, theme }: Template2Props) {
         </a>
         <div className="hidden md:flex gap-8 text-sm uppercase tracking-widest text-gray-500">
           <a href="#about" className="hover:text-black transition-colors">{t("t2_nav_about", "About")}</a>
+          <a href="#services" className="hover:text-black transition-colors">{t("t2_nav_services", "Services")}</a>
           <a href="#projects" className="hover:text-black transition-colors">{t("t2_nav_works", "Works")}</a>
           <a href="#experience" className="hover:text-black transition-colors">{t("t2_nav_experience", "Experience")}</a>
           <a href="#contact" className="hover:text-black transition-colors">{t("t2_nav_contact", "Contact")}</a>
@@ -207,6 +219,92 @@ export default function Template2({ data, theme }: Template2Props) {
                   className="px-5 py-2 border border-gray-300 text-xs uppercase tracking-widest hover:border-black transition-colors"
                 >
                   {showAllExperience ? t("t2_experience_show_less", "Show Less") : t("t2_experience_show_more", "Show More")}
+                </button>
+              </div>
+            )}
+          </motion.section>
+        )}
+
+        {/* EDUCATION SECTION */}
+        {education.length > 0 && (
+          <motion.section id="education" className="py-24 border-t border-gray-200" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={staggerContainer}>
+            <motion.h2 variants={fadeUp} className="text-4xl md:text-5xl font-serif text-black mb-16">{t("t2_education_title", "Education.")}</motion.h2>
+            <div className="max-w-3xl ml-auto">
+              {displayEducation.map((edu) => (
+                <motion.div key={edu.id} variants={fadeUp} className="mb-12 group">
+                  <div className="flex flex-col md:flex-row md:items-baseline justify-between mb-2">
+                    <h4 className="text-2xl font-serif text-black">{edu.institution}</h4>
+                    <span className="text-sm tracking-widest text-gray-400 mt-2 md:mt-0 font-mono">
+                      {new Date(edu.start_date || "").getFullYear()} — {edu.current ? t("t2_education_present", "Present") : edu.end_date ? new Date(edu.end_date).getFullYear() : ""}
+                    </span>
+                  </div>
+                  <h5 className="text-lg mb-1" style={{ color: accent }}>{edu.degree}</h5>
+                  {edu.field_of_study && <p className="text-sm font-medium text-gray-800 mb-3">{edu.field_of_study}</p>}
+                  <p className="text-gray-500 font-light leading-relaxed">{truncate(edu.description, 220)}</p>
+                </motion.div>
+              ))}
+            </div>
+            {education.length > initialEducation && (
+              <div className="mt-8 flex flex-col items-end gap-3">
+                {!showAllEducation && (
+                  <p className="text-sm text-gray-400">+{hiddenEducation} educational records</p>
+                )}
+                <button
+                  onClick={() => setShowAllEducation((prev) => !prev)}
+                  className="px-5 py-2 border border-gray-300 text-xs uppercase tracking-widest hover:border-black transition-colors"
+                >
+                  {showAllEducation ? t("t2_education_show_less", "Show Less") : t("t2_education_show_more", "Show More")}
+                </button>
+              </div>
+            )}
+          </motion.section>
+        )}
+
+        {/* SERVICES SECTION */}
+        {services.length > 0 && (
+          <motion.section id="services" className="py-24 border-t border-gray-200" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={staggerContainer}>
+            <motion.h2 variants={fadeUp} className="text-4xl md:text-5xl font-serif text-black mb-16">{t("t2_services_title", "Specialties.")}</motion.h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-20">
+              {services.map((service) => (
+                <motion.div key={service.id} variants={fadeUp} className="group">
+                  <h4 className="text-2xl font-serif text-black mb-4 border-b border-gray-200 pb-4 group-hover:border-black transition-colors">{service.title}</h4>
+                  <p className="text-gray-500 font-light leading-relaxed">{service.description}</p>
+                </motion.div>
+              ))}
+            </div>
+          </motion.section>
+        )}
+        
+        {/* TESTIMONIALS SECTION */}
+        {testimonials.length > 0 && (
+          <motion.section id="testimonials" className="py-24 border-t border-gray-200" initial="hidden" whileInView="visible" viewport={{ once: true }} variants={staggerContainer}>
+            <div className="flex flex-col md:flex-row md:items-end justify-between mb-16">
+               <motion.h2 variants={fadeUp} className="text-4xl md:text-5xl font-serif text-black">{t("t2_testimonials_title", "Words from others.")}</motion.h2>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12">
+              {displayTestimonials.map((testimonial) => (
+                <motion.div key={testimonial.id} variants={fadeUp} className="bg-white p-10 border border-gray-100 shadow-sm relative">
+                  <span className="absolute top-6 right-8 text-6xl font-serif text-gray-100 leading-none">&quot;</span>
+                  <p className="text-gray-600 font-light leading-relaxed mb-8 relative z-10 text-lg italic">
+                    {testimonial.content}
+                  </p>
+                  <div>
+                    <h5 className="font-medium text-black">{testimonial.name}</h5>
+                    {testimonial.company && <p className="text-sm text-gray-400 mt-1">{testimonial.company}</p>}
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+            {testimonials.length > initialTestimonials && (
+              <div className="mt-12 flex flex-col items-center gap-3">
+                {!showAllTestimonials && (
+                   <p className="text-sm text-gray-400">+{hiddenTestimonials} more testimonials</p>
+                )}
+                <button
+                  onClick={() => setShowAllTestimonials((prev) => !prev)}
+                  className="px-5 py-2 border border-gray-300 text-xs uppercase tracking-widest hover:border-black transition-colors"
+                >
+                  {showAllTestimonials ? t("t2_testimonials_show_less", "Show Less") : t("t2_testimonials_show_more", "Show More")}
                 </button>
               </div>
             )}

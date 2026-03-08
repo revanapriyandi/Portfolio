@@ -7,6 +7,9 @@ import HeroSection from "../portfolio/hero";
 import ProjectsSection from "../portfolio/projects";
 import ExpertiseSection from "../portfolio/expertise";
 import ExperienceSection from "../portfolio/experience";
+import EducationSection from "../portfolio/education";
+import ServicesSection from "../portfolio/services";
+import TestimonialsSection from "../portfolio/testimonials";
 import ContactSection from "../portfolio/contact";
 
 interface PortfolioViewProps {
@@ -25,7 +28,7 @@ function hexToRgb(hex: string) {
 }
 
 export default function Template1({ data, theme }: PortfolioViewProps) {
-  const { personal, projects = [], skills = [], experience = [] } = data;
+  const { personal, projects = [], skills = [], experience = [], education = [], services = [], testimonials = [] } = data;
 
   const containerRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
@@ -100,6 +103,9 @@ export default function Template1({ data, theme }: PortfolioViewProps) {
               { id: "work", index: 1, label: t("t1_nav_work", "Work") },
               { id: "expertise", index: 2, label: t("t1_nav_expertise", "Skills") },
               { id: "experience", index: 3, label: t("t1_nav_experience", "Experience") },
+              { id: "education", index: 4, label: t("t1_nav_education", "Education") },
+              { id: "services", index: 5, label: t("t1_nav_services", "Services") },
+              { id: "testimonials", index: 6, label: t("t1_nav_testimonials", "Testimonials") },
             ].map((nav) => (
               <a
                 key={nav.id}
@@ -149,6 +155,32 @@ export default function Template1({ data, theme }: PortfolioViewProps) {
           textPrimary={textPrimary}
           textSecondary={textSecondary}
           accent={accent}
+          cardBorder={cardBorder}
+          templateTexts={texts}
+        />
+        <EducationSection
+          education={education}
+          textPrimary={textPrimary}
+          textSecondary={textSecondary}
+          accent={accent}
+          cardBorder={cardBorder}
+          templateTexts={texts}
+        />
+        <ServicesSection
+          services={services}
+          textPrimary={textPrimary}
+          textSecondary={textSecondary}
+          accent={accent}
+          cardBg={cardBg}
+          cardBorder={cardBorder}
+          templateTexts={texts}
+        />
+        <TestimonialsSection
+          testimonials={testimonials}
+          textPrimary={textPrimary}
+          textSecondary={textSecondary}
+          accent={accent}
+          cardBg={cardBg}
           cardBorder={cardBorder}
           templateTexts={texts}
         />
