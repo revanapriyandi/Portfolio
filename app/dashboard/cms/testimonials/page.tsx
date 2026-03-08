@@ -1,7 +1,8 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
-import { Plus, Trash2, Edit3, Save, RefreshCw, Star, X, MessageSquare } from "lucide-react";
+import Link from "next/link";
+import { useEffect, useState, useCallback, useRef } from "react";
+import { Plus, Trash2, Edit3, Save, RefreshCw, Star, X, MessageSquare, Globe, AlertCircle, Loader2, Sparkles, CheckCircle } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 
 interface Testimonial {
@@ -55,14 +56,27 @@ export default function TestimonialsPage() {
   const [saving, setSaving] = useState(false);
   const supabase = createClient();
 
+  // Fastwork import state
+  const [showImport, setShowImport] = useState(false);
+  const [fwUsername, setFwUsername] = useState("");
+  const [scraping, setScraping] = useState(false);
+  const [scrapeError, setScrapeError] = useState<string | null>(null);
+  const [logs, setLogs] = useState<string[]>([]);
+  const [imported, setImported] = useState<(Testimonial & { _selected?: boolean })[]>([]);
+  const [savingImport, setSavingImport] = useState(false);
+  const [importDone, setImportDone] = useState(false);
+  const logsEndRef = useRef<HTMLDivElement>(null);
+
   const load = useCallback(async () => {
     setLoading(true);
+    const { data: profile } = await supabase.from("portfolio_personal").select("fastwork_username").single();
+    if (profile?.fastwork_username) setFwUsername(profile.fastwork_username);
+
     const { data } = await supabase.from("portfolio_testimonials").select("*").order("sort_order");
     setItems(data ?? []);
     setLoading(false);
   }, [supabase]);
 
-  // eslint-disable-next-line react-hooks/set-state-in-effect
   useEffect(() => { load(); }, [load]);
 
   const openCreate = () => { setForm({ ...EMPTY }); setEditId(null); };
@@ -85,6 +99,88 @@ export default function TestimonialsPage() {
     load();
   };
 
+  // ── Fastwork Scrape ───────────────────────────────────
+  const scrape = async () => {
+    if (!fwUsername) return;
+    setScraping(true);
+    setScrapeError(null);
+    setImported([]);
+    setImportDone(false);
+    setLogs([]);
+
+    try {
+      const res = await fetch("/api/scrape-reviews", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: fwUsername }),
+      });
+
+      if (!res.body) throw new Error("No response body");
+
+      const reader = res.body.getReader();
+      const decoder = new TextDecoder();
+      let buffer = "";
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() || "";
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          try {
+            const event = JSON.parse(line.slice(6));
+            if (event.type === "log" && event.message) {
+              setLogs(prev => [...prev, event.message!]);
+              setTimeout(() => logsEndRef.current?.scrollIntoView({ behavior: "smooth" }), 50);
+            } else if (event.type === "done" && event.testimonials) {
+              setImported(event.testimonials.map((t: Testimonial, i: number) => ({ ...t, sort_order: i, _selected: true })));
+            } else if (event.type === "error" && event.message) {
+              setScrapeError(event.message);
+            }
+          } catch { /* ignore parse errors */ }
+        }
+      }
+    } catch (e) {
+      setScrapeError(e instanceof Error ? e.message : "Unknown error");
+    } finally {
+      setScraping(false);
+    }
+  };
+
+  const saveImported = async () => {
+    const selected = imported.filter(s => s._selected);
+    if (selected.length === 0) return;
+    setSavingImport(true);
+    setScrapeError(null);
+    try {
+      // Get highest sort order to append correctly
+      const { data: existing } = await supabase.from("portfolio_testimonials").select("sort_order").order("sort_order", { ascending: false }).limit(1).maybeSingle();
+      const startOrder = existing?.sort_order !== undefined ? existing.sort_order + 1 : 0;
+
+      const toInsert = selected.map((item, i) => {
+        const { _selected, id, ...rest } = item as any; // eslint-disable-line
+        return {
+          ...rest,
+          sort_order: startOrder + i,
+          created_at: new Date().toISOString()
+        };
+      });
+
+      const { error } = await supabase.from("portfolio_testimonials").insert(toInsert);
+      if (error) throw error;
+      setImportDone(true);
+      setImported([]);
+      setTimeout(() => setShowImport(false), 2000);
+      load();
+    } catch (e) {
+      setScrapeError(e instanceof Error ? e.message : "Gagal menyimpan ke database");
+    } finally {
+      setSavingImport(false);
+    }
+  };
+
   if (loading) return (
     <div className="flex items-center justify-center h-64">
       <RefreshCw className="w-5 h-5 text-indigo-400 animate-spin" />
@@ -98,10 +194,148 @@ export default function TestimonialsPage() {
           <h1 className="text-lg font-bold text-[#e2e2ef] flex items-center gap-2"><MessageSquare className="w-5 h-5 text-indigo-400" />Testimonial</h1>
           <p className="text-xs text-[#4a4a6a] mt-1">{items.length} testimonial</p>
         </div>
-        <button onClick={openCreate} className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors">
-          <Plus className="w-3.5 h-3.5" /> Tambah
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={() => setShowImport(!showImport)} className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-colors ${showImport ? "bg-[#1e1e2e] text-white" : "bg-violet-600 hover:bg-violet-500 text-white"}`}>
+            {showImport ? <X className="w-3.5 h-3.5" /> : <Globe className="w-3.5 h-3.5" />} {showImport ? "Tutup" : "Import Fastwork"}
+          </button>
+          <button onClick={openCreate} className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors">
+            <Plus className="w-3.5 h-3.5" /> Tambah
+          </button>
+        </div>
       </div>
+
+      {/* ── Fastwork Import Panel ── */}
+      {showImport && (
+        <div className="bg-[#0d0d14] border border-violet-500/20 rounded-xl p-5 space-y-4 animate-in fade-in slide-in-from-top-2 duration-300">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="text-sm font-bold text-[#e2e2ef] flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-violet-400" /> Import Ulasan dari Fastwork
+              </h2>
+              <p className="text-xs text-[#6a6a8a] mt-0.5">Scrape testimonial klien dari profil Fastwork Anda secara otomatis (Eksperimental AI)</p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            {!fwUsername ? (
+              <div className="flex items-center gap-2 bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 text-xs px-3 py-2.5 rounded-lg">
+                <AlertCircle className="w-3.5 h-3.5 shrink-0" />
+                <p>Username Fastwork belum diatur. Tambahkan di <Link href="/dashboard/cms/personal" className="underline">Info Pribadi → FastWork Username</Link>.</p>
+              </div>
+            ) : (
+              <div className="flex items-center gap-2 bg-[#12121c] border border-[#1e1e2e] rounded-lg px-3 py-2.5">
+                <Globe className="w-3.5 h-3.5 text-violet-400 shrink-0" />
+                <span className="text-xs text-[#8a8aaa]">fastwork.id/user/</span>
+                <span className="text-xs font-semibold text-[#e2e2ef]">{fwUsername}</span>
+              </div>
+            )}
+
+            <button onClick={scrape} disabled={scraping || !fwUsername}
+              className="w-full flex items-center justify-center gap-1.5 bg-violet-600 hover:bg-violet-500 disabled:opacity-50 text-white text-xs font-semibold px-4 py-2 rounded-lg transition-colors">
+              {scraping ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Globe className="w-3.5 h-3.5" />}
+              {scraping ? "Sedang scraping ulasan..." : "Mulai Scrape Ulasan Fastwork"}
+            </button>
+          </div>
+
+          {/* Live log terminal */}
+          {(scraping || logs.length > 0) && (
+            <div className="bg-[#060610] border border-[#1a1a2e] rounded-xl overflow-hidden">
+              <div className="flex items-center gap-2 px-3 py-2 border-b border-[#1a1a2e] bg-[#09090f]">
+                <span className="w-2.5 h-2.5 rounded-full bg-red-500/60" />
+                <span className="w-2.5 h-2.5 rounded-full bg-yellow-500/60" />
+                <span className="w-2.5 h-2.5 rounded-full bg-green-500/60" />
+                <span className="text-[10px] text-[#4a4a6a] ml-1 font-mono">fastwork-reviews-scraper</span>
+                {scraping && <Loader2 className="w-3 h-3 text-violet-400 animate-spin ml-auto" />}
+              </div>
+              <div className="p-3 max-h-40 overflow-y-auto font-mono text-[11px] space-y-0.5">
+                {logs.map((line, i) => (
+                  <p key={i} className="text-[#a0a0c0] leading-relaxed">{line}</p>
+                ))}
+                {scraping && (
+                  <p className="text-violet-400 animate-pulse">▌</p>
+                )}
+                <div ref={logsEndRef} />
+              </div>
+            </div>
+          )}
+
+          {scrapeError && (
+            <div className="flex items-start gap-2 bg-red-500/10 border border-red-500/20 text-red-400 text-xs px-3 py-2.5 rounded-lg">
+              <AlertCircle className="w-3.5 h-3.5 mt-0.5 shrink-0" />
+              <p>{scrapeError}</p>
+            </div>
+          )}
+
+          {imported.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <p className="text-xs font-semibold text-[#c2c2df]">{imported.length} ulasan ditemukan — pilih yang ingin disimpan:</p>
+                <button onClick={() => setImported(prev => {
+                  const allSelected = prev.every(s => s._selected);
+                  return prev.map(s => ({ ...s, _selected: !allSelected }));
+                })} className="text-xs text-violet-400 hover:text-violet-300">
+                  {imported.every(s => s._selected) ? "Deselect All" : "Select All"}
+                </button>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-3 max-h-96 overflow-y-auto pr-2 custom-scrollbar">
+                {imported.map(t => (
+                  <div key={t.id || t.name} 
+                    onClick={() => setImported(prev => prev.map(p => p.name === t.name ? { ...p, _selected: !p._selected } : p))}
+                    className={`relative p-3 rounded-xl border transition-all cursor-pointer ${
+                    t._selected 
+                      ? "bg-violet-500/10 border-violet-500/40" 
+                      : "bg-[#12121c] border-[#1e1e2e] opacity-60 hover:opacity-100"
+                  }`}>
+                    {t._selected && (
+                      <div className="absolute top-3 right-3 text-violet-400"><CheckCircle className="w-4 h-4" /></div>
+                    )}
+                    <div className="pr-6">
+                      <input 
+                        value={t.name}
+                        onChange={e => setImported(prev => prev.map(p => p.id === t.id || p.name === t.name ? { ...p, name: e.target.value } : p))}
+                        className="w-full bg-[#12121c] border border-[#1e1e2e] rounded px-2 py-1 text-sm font-semibold text-[#e2e2ef] focus:outline-none focus:border-violet-500 mb-2"
+                        placeholder="Nama Klien"
+                        onClick={e => e.stopPropagation()}
+                      />
+                      <div className="flex items-center gap-1 mb-2">
+                        {[1,2,3,4,5].map(s => <Star key={s} className={`w-3 h-3 ${s <= t.rating ? "text-yellow-400 fill-yellow-400" : "text-[#2a2a3a]"}`} />)}
+                        <span className="text-[10px] text-[#6a6a8a] ml-1">({t.rating}/5)</span>
+                      </div>
+                      <textarea
+                        value={t.content}
+                        onChange={e => setImported(prev => prev.map(p => p.id === t.id || p.name === t.name ? { ...p, content: e.target.value } : p))}
+                        className="w-full bg-[#12121c] border border-[#1e1e2e] rounded px-2 py-1 text-xs text-[#a0a0c0] focus:outline-none focus:border-violet-500 resize-none"
+                        rows={3}
+                        placeholder="Isi Ulasan"
+                        onClick={e => e.stopPropagation()}
+                      />
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="pt-2">
+                <button onClick={saveImported} disabled={savingImport || !imported.some(s => s._selected)}
+                  className="w-full flex items-center justify-center gap-2 bg-green-600 hover:bg-green-500 disabled:opacity-50 text-white text-xs font-semibold px-4 py-2.5 rounded-lg transition-colors">
+                  {savingImport ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+                  Simpan {imported.filter(s => s._selected).length} Ulasan ke Database
+                </button>
+              </div>
+            </div>
+          )}
+
+          {importDone && (
+            <div className="flex items-center gap-2 bg-green-500/10 border border-green-500/20 text-green-400 text-xs px-3 py-2.5 rounded-lg">
+              <CheckCircle className="w-3.5 h-3.5 shrink-0" />
+              <p>Berhasil menyimpan ulasan ke database!</p>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ── Existing Reviews List ── */}
+
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {items.map(t => (

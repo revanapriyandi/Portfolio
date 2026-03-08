@@ -158,6 +158,7 @@ create table portfolio_services (
   currency    text default 'IDR',
   features    text[],
   is_featured boolean default false,
+  service_url text,
   sort_order  int default 0,
   created_at  timestamptz default now(),
   updated_at  timestamptz default now()
