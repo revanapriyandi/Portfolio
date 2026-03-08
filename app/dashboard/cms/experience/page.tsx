@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 import { Plus, Trash2, Save, Loader2, Briefcase, Building2, Globe, FileCode2 } from "lucide-react";
 import { ImageUpload } from "@/components/image-upload";
+import { Switch } from "@/components/ui/switch";
 
 interface Exp { 
   id: string; 
@@ -173,10 +174,10 @@ export default function ExperienceEditor() {
             {/* Actions */}
             <div className="flex items-center justify-between pt-2 border-t border-[#1e1e2e]">
               <label className="flex items-center gap-2 cursor-pointer text-xs text-[#a1a1aa] hover:text-[#e2e2ef] transition-colors">
-                <button onClick={() => update(item.id, "current", !item.current)}
-                  className={`w-8 h-4 rounded-full transition-colors relative ${item.current ? "bg-indigo-600" : "bg-[#2a2a3a]"}`}>
-                  <span className={`absolute top-0.5 w-3 h-3 rounded-full bg-white transition-transform ${item.current ? "translate-x-4" : "translate-x-0.5"}`} />
-                </button>
+                <Switch
+                  checked={item.current}
+                  onCheckedChange={val => update(item.id, "current", val)}
+                />
                 Saya masih bekerja di sini
               </label>
               <div className="flex gap-2">

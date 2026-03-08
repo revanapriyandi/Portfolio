@@ -6,10 +6,11 @@ export async function GET() {
   const { data, error } = await supabase
     .from("portfolio_system_settings")
     .select("*")
+    .order("updated_at", { ascending: false })
     .limit(1)
-    .single();
+    .maybeSingle();
 
-  if (error && error.code !== "PGRST116") {
+  if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 });
   }
 
@@ -33,22 +34,35 @@ export async function POST(req: Request) {
     const { data: existing } = await supabase
       .from("portfolio_system_settings")
       .select("id")
+      .order("updated_at", { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
 
     let error;
+    let activeId: string | undefined;
     if (existing?.id) {
+      activeId = existing.id;
       ({ error } = await supabase
         .from("portfolio_system_settings")
         .update({ ...body, updated_at: new Date().toISOString() })
         .eq("id", existing.id));
     } else {
-      ({ error } = await supabase
+      const { data: inserted, error: insertError } = await supabase
         .from("portfolio_system_settings")
-        .insert({ ...body, updated_at: new Date().toISOString() }));
+        .insert({ ...body, updated_at: new Date().toISOString() })
+        .select("id")
+        .single();
+      error = insertError;
+      activeId = inserted?.id;
     }
 
     if (error) throw error;
+
+    // Keep a single active settings row to avoid ambiguous reads.
+    if (activeId) {
+      await supabase.from("portfolio_system_settings").delete().neq("id", activeId);
+    }
+
     return NextResponse.json({ success: true });
   } catch (err: unknown) {
     const message = err instanceof Error ? err.message : "Unknown error";

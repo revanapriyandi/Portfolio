@@ -7,8 +7,9 @@ export async function GET() {
   const { data: settings } = await supabase
     .from("portfolio_system_settings")
     .select("github_username, github_token")
+    .order("updated_at", { ascending: false })
     .limit(1)
-    .single();
+    .maybeSingle();
 
   const USERNAME = settings?.github_username || process.env.GITHUB_USERNAME || "revanapriyandi";
   const TOKEN = settings?.github_token || process.env.GITHUB_TOKEN;

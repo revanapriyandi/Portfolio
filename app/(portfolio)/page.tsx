@@ -5,6 +5,7 @@ import Template1 from "@/components/templates/template-1";
 import Template2 from "@/components/templates/template-2";
 
 export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
   const seo = await getSeoContext();
@@ -36,7 +37,12 @@ export default async function PortfolioPage() {
     supabase.from("portfolio_education").select("*").order("sort_order"),
     supabase.from("portfolio_services").select("*").order("sort_order"),
     supabase.from("portfolio_testimonials").select("*").order("sort_order"),
-    supabase.from("portfolio_system_settings").select("site_title, site_description, active_template, theme, section_order").limit(1).maybeSingle(),
+    supabase
+      .from("portfolio_system_settings")
+      .select("site_title, site_description, active_template, theme, section_order")
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle(),
   ]);
 
   const personal = personalRes.data;
@@ -52,7 +58,8 @@ export default async function PortfolioPage() {
   const cmsTheme = settingsRes.data?.theme || {};
   const accent = cmsTheme.accent || "#4f46e5";
   const bg = cmsTheme.bg || "#0b0b12";
-  const activeTemplate = settingsRes.data?.active_template || "template1";
+  const selectedTemplate = settingsRes.data?.active_template;
+  const activeTemplate = selectedTemplate === "template2" ? "template2" : "template1";
 
   // Props standar yang dikirim ke semua template
   const portfolioData = {
@@ -69,18 +76,17 @@ export default async function PortfolioPage() {
     accent,
     bg,
     siteTitle,
-    siteDescription
+    siteDescription,
+    templateTexts:
+      cmsTheme.templateTexts && typeof cmsTheme.templateTexts === "object"
+        ? cmsTheme.templateTexts
+        : {},
   };
 
   return (
     <>
       {activeTemplate === "template1" && <Template1 data={portfolioData} theme={themeConfig} />}
       {activeTemplate === "template2" && <Template2 data={portfolioData} theme={themeConfig} />}
-      {activeTemplate !== "template1" && activeTemplate !== "template2" && (
-        <div className="min-h-screen flex items-center justify-center text-white bg-[#0b0b12]">
-          <p>Template &quot;{activeTemplate}&quot; sedang dalam pengembangan.</p>
-        </div>
-      )}
     </>
   );
 }

@@ -230,6 +230,9 @@ create table portfolio_system_settings (
   -- Section order & visibility
   section_order               text[] default array['hero','projects','skills','experience','education','contact'],
   visible_sections            text[] default array['hero','projects','skills','experience','education','contact'],
+  -- AI Config (Gemini)
+  gemini_api_key              text,
+  gemini_model                text,
   -- Timestamps
   updated_at                  timestamptz default now()
 );

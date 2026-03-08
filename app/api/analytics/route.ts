@@ -7,8 +7,9 @@ export async function GET() {
   const { data: settings } = await supabase
     .from("portfolio_system_settings")
     .select("ga4_property_id, ga_credentials_json")
+    .order("updated_at", { ascending: false })
     .limit(1)
-    .single();
+    .maybeSingle();
 
   const propertyId = settings?.ga4_property_id || process.env.GA4_PROPERTY_ID;
   const credentialsJson = settings?.ga_credentials_json || process.env.GOOGLE_APPLICATION_CREDENTIALS_JSON;

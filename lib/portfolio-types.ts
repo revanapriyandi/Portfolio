@@ -100,4 +100,5 @@ export interface ThemeSettings {
   bg: string;
   siteTitle?: string;
   siteDescription?: string;
+  templateTexts?: Record<string, string>;
 }

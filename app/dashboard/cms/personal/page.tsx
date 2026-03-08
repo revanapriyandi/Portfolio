@@ -70,8 +70,6 @@ export default function PersonalEditor() {
     void created_at; void updated_at;
   }
 
-
-
   if (loading) return <div className="flex items-center justify-center h-64"><Loader2 className="w-5 h-5 text-indigo-400 animate-spin" /></div>;
 
   const val = (k: string) => (data[k] as string) ?? "";

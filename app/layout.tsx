@@ -55,7 +55,12 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   
   try {
     const supabase = await createClient();
-    const { data } = await supabase.from("portfolio_system_settings").select("theme").limit(1).single();
+    const { data } = await supabase
+      .from("portfolio_system_settings")
+      .select("theme")
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
     if (data?.theme) theme = { ...theme, ...data.theme };
   } catch {
     // defaults
