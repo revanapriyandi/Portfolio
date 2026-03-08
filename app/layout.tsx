@@ -19,7 +19,7 @@ const firaCode = Fira_Code({
 
 export async function generateMetadata(): Promise<Metadata> {
   try {
-    const { siteTitle, siteDescription, siteUrl, defaultOgImage } = await getSeoContext();
+    const { siteTitle, siteDescription, siteUrl, defaultOgImage, ownerName, ownerRole } = await getSeoContext();
 
     return {
       title: {
@@ -28,12 +28,15 @@ export async function generateMetadata(): Promise<Metadata> {
       },
       description: siteDescription,
       metadataBase: new URL(siteUrl),
+      ...(ownerName && { authors: [{ name: ownerName }] }),
+      ...(ownerRole && { keywords: [ownerRole, "portfolio", "developer", "software engineer"] }),
       openGraph: {
         title: siteTitle,
         description: siteDescription,
         url: siteUrl,
         type: "website",
-        images: defaultOgImage ? [{ url: defaultOgImage }] : undefined,
+        siteName: siteTitle,
+        images: defaultOgImage ? [{ url: defaultOgImage, alt: siteTitle }] : undefined,
       },
       twitter: {
         card: defaultOgImage ? "summary_large_image" : "summary",
@@ -41,11 +44,16 @@ export async function generateMetadata(): Promise<Metadata> {
         description: siteDescription,
         images: defaultOgImage ? [defaultOgImage] : undefined,
       },
+      robots: {
+        index: true,
+        follow: true,
+        googleBot: { index: true, follow: true },
+      },
     };
   } catch {
     return {
-      title: "M. Revan Apriyandi — Software Engineer",
-      description: "Portfolio of M. Revan Apriyandi.",
+      title: "Portfolio",
+      description: "Personal portfolio website.",
     };
   }
 }

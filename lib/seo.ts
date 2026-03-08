@@ -33,24 +33,46 @@ export function createPageUrl(siteUrl: string, slug: string) {
 export async function getSeoContext() {
   const supabase = await createClient();
 
-  const [{ data: settings }, { data: pages }] = await Promise.all([
-    supabase
-      .from("portfolio_system_settings")
-      .select("site_title, site_description, site_url, og_image")
-      .limit(1)
-      .maybeSingle<SystemSettingsRow>(),
-    supabase
-      .from("portfolio_pages")
-      .select("slug, title, description, og_image, status, updated_at")
-      .eq("status", "published")
-      .order("nav_order", { ascending: true })
-      .returns<PageSettingsRow[]>(),
-  ]);
+  const [{ data: settings }, { data: pages }, { data: personal }] =
+    await Promise.all([
+      supabase
+        .from("portfolio_system_settings")
+        .select("site_title, site_description, site_url, og_image")
+        .limit(1)
+        .maybeSingle<SystemSettingsRow>(),
+      supabase
+        .from("portfolio_pages")
+        .select("slug, title, description, og_image, status, updated_at")
+        .eq("status", "published")
+        .order("nav_order", { ascending: true })
+        .returns<PageSettingsRow[]>(),
+      supabase
+        .from("personal_info")
+        .select("name, title, bio, avatar_url")
+        .limit(1)
+        .maybeSingle(),
+    ]);
 
-  const siteTitle = settings?.site_title || FALLBACK_SITE_TITLE;
-  const siteDescription = settings?.site_description || FALLBACK_SITE_DESCRIPTION;
+  // Build smart dynamic fallbacks from personal_info
+  const ownerName = personal?.name || null;
+  const ownerRole = (personal?.title as string | null) || "Software Engineer";
+  const ownerBio = (personal?.bio as string | null) || null;
+  const ownerAvatar = (personal?.avatar_url as string | null) || null;
+
+  const dynamicSiteTitle = ownerName
+    ? `${ownerName} — ${ownerRole}`
+    : FALLBACK_SITE_TITLE;
+
+  const dynamicSiteDescription = ownerBio
+    ? ownerBio.slice(0, 160).trimEnd()
+    : ownerName
+      ? `Portfolio of ${ownerName}, ${ownerRole}.`
+      : FALLBACK_SITE_DESCRIPTION;
+
+  const siteTitle = settings?.site_title || dynamicSiteTitle;
+  const siteDescription = settings?.site_description || dynamicSiteDescription;
   const siteUrl = normalizeUrl(settings?.site_url);
-  const defaultOgImage = settings?.og_image || null;
+  const defaultOgImage = settings?.og_image || ownerAvatar || null;
 
   return {
     siteTitle,
@@ -58,6 +80,8 @@ export async function getSeoContext() {
     siteUrl,
     defaultOgImage,
     pages: pages ?? [],
+    ownerName,
+    ownerRole,
   };
 }
 
